@@ -5,6 +5,8 @@ namespace SchoolManagement.Application.Common
 {
     public static class PasswordHasher
     {
+        private const int IterationCount = 310000;
+
         public static string HashPassword(string password)
         {
             byte[] salt = new byte[16];
@@ -13,7 +15,7 @@ namespace SchoolManagement.Application.Common
                 rng.GetBytes(salt);
             }
 
-            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
+            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, IterationCount, HashAlgorithmName.SHA256))
             {
                 byte[] subkey = pbkdf2.GetBytes(32);
                 byte[] outputBytes = new byte[1 + 4 + 4 + 4 + 16 + 32];
@@ -21,8 +23,8 @@ namespace SchoolManagement.Application.Common
                 
                 // Write PRF (1 = HMAC-SHA256)
                 WriteNetworkByteOrder(outputBytes, 1, 1);
-                // Write iteration count (10000)
-                WriteNetworkByteOrder(outputBytes, 5, 10000);
+                // Write iteration count.
+                WriteNetworkByteOrder(outputBytes, 5, IterationCount);
                 // Write salt size (16)
                 WriteNetworkByteOrder(outputBytes, 9, 16);
                 

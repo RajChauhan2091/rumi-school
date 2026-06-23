@@ -7,7 +7,10 @@
 <div class="content-card mb-4">
     <div class="card-header-crimson">
         <h5>Search & Filter Students</h5>
-        <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-person-plus-fill me-1"></i> Admit Student</a>
+        @if (User.IsInRole("Administrator") || User.IsInRole("Clerk"))
+        {
+            <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-person-plus-fill me-1"></i> Admit Student</a>
+        }
     </div>
     <div class="card-body-custom">
         <form method="get" asp-action="Index">
@@ -100,10 +103,19 @@
                                 </td>
                                 <td class="fw-bold">@(item.RollNo?.ToString() ?? "-")</td>
                                 <td class="text-end">
-                                    <a asp-action="Allocate" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-success me-1" title="Allocate Class"><i class="bi bi-arrow-left-right"></i></a>
-                                    <a asp-action="Edit" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                    @if (User.IsInRole("Administrator"))
+                                    {
+                                        <a asp-action="Allocate" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-success me-1" title="Allocate Class"><i class="bi bi-arrow-left-right"></i></a>
+                                    }
+                                    @if (User.IsInRole("Administrator") || User.IsInRole("Clerk"))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary me-1" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                    }
                                     <a asp-action="Details" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-info me-1" title="Details"><i class="bi bi-eye-fill text-dark"></i></a>
-                                    <a asp-action="Delete" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash-fill"></i></a>
+                                    @if (User.IsInRole("Administrator"))
+                                    {
+                                        <a asp-action="Delete" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash-fill"></i></a>
+                                    }
                                 </td>
                             </tr>
                         }

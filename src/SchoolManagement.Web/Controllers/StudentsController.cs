@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +18,14 @@ namespace SchoolManagement.Web.Controllers
     [Authorize]
     public class StudentsController : Controller
     {
+        private const long MaxPhotoBytes = 2 * 1024 * 1024;
+        private static readonly HashSet<string> AllowedPhotoContentTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        };
+
         private readonly IStudentService _studentService;
         private readonly IClassScheduleService _classScheduleService;
         private readonly IFinancialYearService _financialYearService;
@@ -69,6 +74,7 @@ namespace SchoolManagement.Web.Controllers
             return View(student);
         }
 
+        [Authorize(Roles = "Administrator,Clerk")]
         public async Task<IActionResult> Create()
         {
             await PopulateDropdownsAsync();
@@ -82,6 +88,7 @@ namespace SchoolManagement.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator,Clerk")]
         public async Task<IActionResult> Create(StudentInfo model, int? classScheduleId, int? rollNo, IFormFile? studentPhoto)
         {
             if (!ModelState.IsValid)
@@ -90,12 +97,23 @@ namespace SchoolManagement.Web.Controllers
                 return View(model);
             }
 
-            int performedBy = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             if (studentPhoto != null && studentPhoto.Length > 0)
             {
-                model.StudentPhoto = CompressImage(studentPhoto);
+                var validationError = ValidatePhoto(studentPhoto);
+                if (validationError != null)
+                {
+                    ModelState.AddModelError("studentPhoto", validationError);
+                    await PopulateDropdownsAsync(classScheduleId);
+                    return View(model);
+                }
+
+                model.StudentPhoto = await ReadPhotoAsync(studentPhoto);
             }
 
             var result = await _studentService.SaveAsync(model, classScheduleId, rollNo, performedBy, ipAddress);
@@ -110,6 +128,7 @@ namespace SchoolManagement.Web.Controllers
             return View(model);
         }
 
+        [Authorize(Roles = "Administrator,Clerk")]
         public async Task<IActionResult> Edit(int id)
         {
             var list = await _studentService.GetByIdAsync(id);
@@ -164,6 +183,7 @@ namespace SchoolManagement.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator,Clerk")]
         public async Task<IActionResult> Edit(int id, StudentInfo model, IFormFile? studentPhoto)
         {
             if (id != model.StudentId)
@@ -177,12 +197,23 @@ namespace SchoolManagement.Web.Controllers
                 return View(model);
             }
 
-            int performedBy = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             if (studentPhoto != null && studentPhoto.Length > 0)
             {
-                model.StudentPhoto = CompressImage(studentPhoto);
+                var validationError = ValidatePhoto(studentPhoto);
+                if (validationError != null)
+                {
+                    ModelState.AddModelError("studentPhoto", validationError);
+                    await PopulateDropdownsAsync();
+                    return View(model);
+                }
+
+                model.StudentPhoto = await ReadPhotoAsync(studentPhoto);
             }
             else
             {
@@ -207,6 +238,7 @@ namespace SchoolManagement.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Allocate(int id)
         {
             var list = await _studentService.GetByIdAsync(id);
@@ -227,6 +259,7 @@ namespace SchoolManagement.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Allocate(StudentAllocationModel model)
         {
             var list = await _studentService.GetByIdAsync(model.StudentId);
@@ -284,7 +317,10 @@ namespace SchoolManagement.Web.Controllers
                 EmailAddress = viewItem.EmailAddress
             };
 
-            int performedBy = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             var result = await _studentService.SaveAsync(studentInfo, model.ClassScheduleId, model.RollNo, performedBy, ipAddress);
@@ -301,6 +337,7 @@ namespace SchoolManagement.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(int id)
         {
             var list = await _studentService.GetByIdAsync(id);
@@ -313,9 +350,13 @@ namespace SchoolManagement.Web.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            int performedBy = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             var result = await _studentService.DeleteAsync(id, performedBy, ipAddress);
@@ -341,75 +382,38 @@ namespace SchoolManagement.Web.Controllers
             ViewBag.Categories = new SelectList(new[] { "General", "OBC", "SC", "ST", "EWS" });
         }
 
-        private byte[] CompressImage(IFormFile file)
+        private static string? ValidatePhoto(IFormFile file)
         {
-            using (var memoryStream = new MemoryStream())
+            if (file.Length <= 0)
             {
-                file.CopyTo(memoryStream);
-                memoryStream.Position = 0;
-                
-                using (var originalImage = Image.FromStream(memoryStream))
-                {
-                    // Calculate new dimensions (max width/height of 1000px to maintain clarity and small file size)
-                    int maxWidth = 1000;
-                    int maxHeight = 1000;
-                    int newWidth = originalImage.Width;
-                    int newHeight = originalImage.Height;
-                    
-                    if (newWidth > maxWidth || newHeight > maxHeight)
-                    {
-                        double ratioX = (double)maxWidth / originalImage.Width;
-                        double ratioY = (double)maxHeight / originalImage.Height;
-                        double ratio = Math.Min(ratioX, ratioY);
-                        
-                        newWidth = (int)(originalImage.Width * ratio);
-                        newHeight = (int)(originalImage.Height * ratio);
-                    }
-                    
-                    using (var resizedImage = new Bitmap(newWidth, newHeight))
-                    {
-                        using (var graphics = Graphics.FromImage(resizedImage))
-                        {
-                            graphics.CompositingQuality = CompositingQuality.HighQuality;
-                            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            graphics.SmoothingMode = SmoothingMode.HighQuality;
-                            graphics.DrawImage(originalImage, 0, 0, newWidth, newHeight);
-                        }
-                        
-                        using (var outputStream = new MemoryStream())
-                        {
-                            // Compress to JPEG with 75% quality for excellent clarity but small footprint (< 150 KB)
-                            var jpegEncoder = GetEncoder(ImageFormat.Jpeg);
-                            var encoderParameters = new EncoderParameters(1);
-                            encoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 75L);
-                            
-                            if (jpegEncoder != null)
-                            {
-                                resizedImage.Save(outputStream, jpegEncoder, encoderParameters);
-                            }
-                            else
-                            {
-                                resizedImage.Save(outputStream, ImageFormat.Jpeg);
-                            }
-                            
-                            return outputStream.ToArray();
-                        }
-                    }
-                }
+                return "Student photo is empty.";
             }
+
+            if (file.Length > MaxPhotoBytes)
+            {
+                return "Student photo must be 2 MB or smaller.";
+            }
+
+            if (!AllowedPhotoContentTypes.Contains(file.ContentType))
+            {
+                return "Only JPEG, PNG, or WebP photos are allowed.";
+            }
+
+            return null;
         }
 
-        private ImageCodecInfo? GetEncoder(ImageFormat format)
+        private static async Task<byte[]> ReadPhotoAsync(IFormFile file)
         {
-            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageEncoders();
-            foreach (ImageCodecInfo codec in codecs)
-            {
-                if (codec.FormatID == format.Guid)
-                {
-                    return codec;
-                }
-            }
-            return null;
+            await using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
+        }
+
+        private bool TryGetCurrentUserId(out int userId)
+        {
+            userId = 0;
+            var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(value, out userId);
         }
     }
 }

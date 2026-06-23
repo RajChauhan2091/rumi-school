@@ -416,7 +416,7 @@ BEGIN
                   + '-';
 
     SELECT @NextSequence = ISNULL(MAX(CAST(SUBSTRING(GrNo, 9, 4) AS INT)), 0) + 1
-    FROM StudentInfo
+    FROM StudentInfo WITH (UPDLOCK, HOLDLOCK)
     WHERE GrNo LIKE @Prefix + '%';
 
     SET @NextGrNo = @Prefix + RIGHT('0000' + CAST(@NextSequence AS VARCHAR), 4);
@@ -545,7 +545,11 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @OldValues NVARCHAR(MAX);
-        SET @OldValues = (SELECT * FROM Users WHERE UserId = @UserId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (
+            SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
+            FROM Users WHERE UserId = @UserId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        );
 
         UPDATE Users
         SET LastLoginDate = SYSUTCDATETIME(),
@@ -554,7 +558,11 @@ BEGIN
         WHERE UserId = @UserId;
 
         DECLARE @NewValues NVARCHAR(MAX);
-        SET @NewValues = (SELECT * FROM Users WHERE UserId = @UserId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @NewValues = (
+            SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
+            FROM Users WHERE UserId = @UserId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        );
 
         INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
         VALUES ('Users', @UserId, 'UPDATE', @OldValues, @NewValues, @UserId, @IPAddress, @UserId);
@@ -606,7 +614,11 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @OldValues NVARCHAR(MAX);
-        SET @OldValues = (SELECT * FROM Users WHERE UserId = @UserId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (
+            SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
+            FROM Users WHERE UserId = @UserId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        );
 
         UPDATE Users
         SET PasswordHash = @NewPasswordHash,
@@ -615,7 +627,11 @@ BEGIN
         WHERE UserId = @UserId;
 
         DECLARE @NewValues NVARCHAR(MAX);
-        SET @NewValues = (SELECT * FROM Users WHERE UserId = @UserId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @NewValues = (
+            SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
+            FROM Users WHERE UserId = @UserId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        );
 
         INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
         VALUES ('Users', @UserId, 'UPDATE', @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
@@ -1913,10 +1929,10 @@ VALUES
 GO
 
 -- 2. Seed Default Admin User
--- Password: Admin@123 (ASP.NET Identity V3 Hash)
+-- Supply AdminPasswordHash through sqlcmd or your deployment secret store.
 INSERT INTO Users (Username, PasswordHash, FullName, EmailAddress, CreatedBy)
 VALUES 
-    ('admin', 'AQAAAAEAACcQAAAAEL/5rBAXlEOyPr8qkI3zrkG9s7dxmeW1CavmFnI9hhntrdub38kMW0xsNBhNLh5X3A==', 'System Administrator', 'admin@sms.com', 1);
+    ('admin', '$(AdminPasswordHash)', 'System Administrator', 'admin@sms.com', 1);
 GO
 
 -- 3. Map Admin User to Administrator Role

@@ -100,7 +100,7 @@ Stores detailed information about students.
     *   `LastName` `VARCHAR(50) NOT NULL`
     *   `DateOfBirth` `DATE NOT NULL`
     *   `Gender` `VARCHAR(10) NOT NULL` (Male, Female, Other)
-    *   `StudentPhotoPath` `VARCHAR(500) NULL`
+    *   `StudentPhoto` `VARBINARY(MAX) NULL`
     *   `PlaceOfBirth` `VARCHAR(100) NULL`
     *   `Nationality` `VARCHAR(50) NOT NULL DEFAULT 'Indian'`
     *   `BloodGroup` `VARCHAR(5) NULL`

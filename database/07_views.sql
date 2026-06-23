@@ -47,7 +47,7 @@ SELECT
     (s.FirstName + ' ' + ISNULL(s.MiddleName + ' ', '') + s.LastName) AS FullName,
     s.DateOfBirth,
     s.Gender,
-    s.StudentPhotoPath,
+    s.StudentPhoto,
     s.PlaceOfBirth,
     s.Nationality,
     s.BloodGroup,

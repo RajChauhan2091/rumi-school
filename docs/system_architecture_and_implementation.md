@@ -1,6 +1,6 @@
 # School Management System (SMS) - System Architecture & Implementation
 
-This document provides a comprehensive overview of the technical architecture and code implementation of the School Management System (SMS). It explains the structure of the application, how the data flows, and how the core features—including authentication, database operations via stored procedures, and the binary photo upload system with auto-compression—are implemented.
+This document provides a comprehensive overview of the technical architecture and code implementation of the School Management System (SMS). It explains the structure of the application, how the data flows, and how the core features-including authentication, database operations via stored procedures, and the binary photo upload system with server-side validation-are implemented.
 
 ---
 
@@ -69,82 +69,39 @@ To leverage SQL Server's performance and transaction capabilities:
 
 ---
 
-## 4. Student Photo Binary Management & Auto-Compression
+## 4. Student Photo Binary Management & Validation
 
 Previously, student photos were saved as paths pointing to local disk folders. This was converted to a **strictly database-bound binary format (`VARBINARY(MAX)`)** stored in the database.
 
 ### The Problem
 Allowing raw 5 MB+ image uploads directly into a database causes rapid database storage expansion, slows down reads/writes, and impacts memory utilization during Base64 rendering.
 
-### The Solution: General Image Compressor
-We created a general compression handler in `StudentsController` using `System.Drawing.Common`. Any uploaded image is compressed to under 500 KB (typically **< 150 KB**) while preserving high visual clarity.
+### The Solution: Server-Side Upload Validation
+Student photo uploads are validated in `StudentsController` before storage. The controller allows only JPEG, PNG, and WebP content types, rejects empty files, and enforces a 2 MB maximum size.
 
-#### Compression Pipeline:
+#### Upload Pipeline:
 1. The client uploads an image file via the `IFormFile studentPhoto` parameter in the `Create`/`Edit` post-actions.
-2. The image is passed to `CompressImage(IFormFile file)`.
-3. It initializes a memory stream of the raw file and reads it as a `System.Drawing.Image`.
-4. It checks the dimensions. If the width or height exceeds `1000px`, it calculates the aspect ratio and scales the image down to fit within a `1000x1000px` bounding box.
-5. It instantiates a new high-quality `Bitmap` drawing context, applying high-quality bicubic interpolation and compositing quality properties.
-6. It encodes the resized bitmap as a **JPEG image with 75% quality**, which hits the sweet spot of visual quality vs. size reduction.
-7. The output byte array is stored in the student model's `StudentPhoto` (`byte[]`) field and passed to `usp_Student_Save` as a `SqlParameter`.
+2. The file is passed to `ValidatePhoto(IFormFile file)`.
+3. Empty files, files larger than 2 MB, and unsupported content types are rejected.
+4. Valid files are read asynchronously and stored in the database as `VARBINARY(MAX)`.
+5. The output byte array is stored in the student model's `StudentPhoto` (`byte[]`) field and passed to `usp_Student_Save` as a `SqlParameter`.
 
 ```csharp
-private byte[] CompressImage(IFormFile file)
+private static string? ValidatePhoto(IFormFile file)
 {
-    using (var memoryStream = new MemoryStream())
+    if (file.Length <= 0)
     {
-        file.CopyTo(memoryStream);
-        memoryStream.Position = 0;
-        
-        using (var originalImage = Image.FromStream(memoryStream))
-        {
-            // Calculate new dimensions (max width/height of 1000px to maintain clarity and small file size)
-            int maxWidth = 1000;
-            int maxHeight = 1000;
-            int newWidth = originalImage.Width;
-            int newHeight = originalImage.Height;
-            
-            if (newWidth > maxWidth || newHeight > maxHeight)
-            {
-                double ratioX = (double)maxWidth / originalImage.Width;
-                double ratioY = (double)maxHeight / originalImage.Height;
-                double ratio = Math.Min(ratioX, ratioY);
-                
-                newWidth = (int)(originalImage.Width * ratio);
-                newHeight = (int)(originalImage.Height * ratio);
-            }
-            
-            using (var resizedImage = new Bitmap(newWidth, newHeight))
-            {
-                using (var graphics = Graphics.FromImage(resizedImage))
-                {
-                    graphics.CompositingQuality = CompositingQuality.HighQuality;
-                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    graphics.SmoothingMode = SmoothingMode.HighQuality;
-                    graphics.DrawImage(originalImage, 0, 0, newWidth, newHeight);
-                }
-                
-                using (var outputStream = new MemoryStream())
-                {
-                    // Compress to JPEG with 75% quality for excellent clarity but small footprint
-                    var jpegEncoder = GetEncoder(ImageFormat.Jpeg);
-                    var encoderParameters = new EncoderParameters(1);
-                    encoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 75L);
-                    
-                    if (jpegEncoder != null)
-                    {
-                        resizedImage.Save(outputStream, jpegEncoder, encoderParameters);
-                    }
-                    else
-                    {
-                        resizedImage.Save(outputStream, ImageFormat.Jpeg);
-                    }
-                    
-                    return outputStream.ToArray();
-                }
-            }
-        }
+        return "Student photo is empty.";
     }
+
+    if (file.Length > MaxPhotoBytes)
+    {
+        return "Student photo must be 2 MB or smaller.";
+    }
+
+    return AllowedPhotoContentTypes.Contains(file.ContentType)
+        ? null
+        : "Only JPEG, PNG, or WebP photos are allowed.";
 }
 ```
 

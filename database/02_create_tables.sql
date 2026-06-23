@@ -4,15 +4,14 @@
 USE SMS;
 GO
 
--- 1. FinancialYears Table
-CREATE TABLE FinancialYears (
+-- 1. FinancialYear Table
+CREATE TABLE FinancialYear (
     FinancialYearId INT IDENTITY(1,1) PRIMARY KEY,
     FinancialYear VARCHAR(20) NOT NULL,
     StartDate DATE NOT NULL,
     EndDate DATE NOT NULL,
     IsCurrent BIT NOT NULL DEFAULT 0,
     
-    -- Global Audit Columns
     CreatedDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
     CreatedBy INT NOT NULL,
     UpdatedDate DATETIME2 NULL,
@@ -22,8 +21,8 @@ CREATE TABLE FinancialYears (
 );
 GO
 
--- 2. Divisions Table
-CREATE TABLE Divisions (
+-- 2. DivisionMaster Table
+CREATE TABLE DivisionMaster (
     DivisionId INT IDENTITY(1,1) PRIMARY KEY,
     DivisionName VARCHAR(50) NOT NULL,
     
@@ -37,8 +36,8 @@ CREATE TABLE Divisions (
 );
 GO
 
--- 3. Classes Table
-CREATE TABLE Classes (
+-- 3. ClassMaster Table
+CREATE TABLE ClassMaster (
     ClassId INT IDENTITY(1,1) PRIMARY KEY,
     ClassName VARCHAR(50) NOT NULL,
     
@@ -70,8 +69,8 @@ CREATE TABLE ClassSchedules (
 );
 GO
 
--- 5. Students Table
-CREATE TABLE Students (
+-- 5. StudentInfo Table
+CREATE TABLE StudentInfo (
     StudentId INT IDENTITY(1,1) PRIMARY KEY,
     
     -- Basic Information
@@ -82,7 +81,7 @@ CREATE TABLE Students (
     LastName VARCHAR(50) NOT NULL,
     DateOfBirth DATE NOT NULL,
     Gender VARCHAR(10) NOT NULL,
-    StudentPhotoPath VARCHAR(500) NULL,
+    StudentPhoto VARBINARY(MAX) NULL,
     
     -- Personal Information
     PlaceOfBirth VARCHAR(100) NULL,

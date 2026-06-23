@@ -9,25 +9,25 @@ GO
 -- ClassSchedules Foreign Keys
 ALTER TABLE ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_Classes_ClassId 
-    FOREIGN KEY (ClassId) REFERENCES Classes(ClassId);
+    FOREIGN KEY (ClassId) REFERENCES ClassMaster(ClassId);
 
 ALTER TABLE ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_Divisions_DivisionId 
-    FOREIGN KEY (DivisionId) REFERENCES Divisions(DivisionId);
+    FOREIGN KEY (DivisionId) REFERENCES DivisionMaster(DivisionId);
 
 ALTER TABLE ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_FinancialYears_FinancialYearId 
-    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYears(FinancialYearId);
+    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
 
--- Students Foreign Keys
-ALTER TABLE Students
+-- StudentInfo Foreign Keys
+ALTER TABLE StudentInfo
     ADD CONSTRAINT FK_Students_FinancialYears_AdmissionFinancialYearId 
-    FOREIGN KEY (AdmissionFinancialYearId) REFERENCES FinancialYears(FinancialYearId);
+    FOREIGN KEY (AdmissionFinancialYearId) REFERENCES FinancialYear(FinancialYearId);
 
 -- StudentMappings Foreign Keys
 ALTER TABLE StudentMappings
     ADD CONSTRAINT FK_StudentMappings_Students_StudentId 
-    FOREIGN KEY (StudentId) REFERENCES Students(StudentId);
+    FOREIGN KEY (StudentId) REFERENCES StudentInfo(StudentId);
 
 ALTER TABLE StudentMappings
     ADD CONSTRAINT FK_StudentMappings_ClassSchedules_ClassScheduleId 
@@ -35,7 +35,7 @@ ALTER TABLE StudentMappings
 
 ALTER TABLE StudentMappings
     ADD CONSTRAINT FK_StudentMappings_FinancialYears_FinancialYearId 
-    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYears(FinancialYearId);
+    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
 
 -- UserRoles Foreign Keys
 ALTER TABLE UserRoles
@@ -51,8 +51,8 @@ ALTER TABLE UserRoles
 -- 2. CHECK CONSTRAINTS
 -- ============================================================================
 
--- FinancialYears StartDate & EndDate Check
-ALTER TABLE FinancialYears
+-- FinancialYear StartDate & EndDate Check
+ALTER TABLE FinancialYear
     ADD CONSTRAINT CK_FinancialYears_Dates 
     CHECK (StartDate < EndDate);
 
@@ -61,8 +61,8 @@ ALTER TABLE ClassSchedules
     ADD CONSTRAINT CK_ClassSchedules_MaxCapacity 
     CHECK (MaxCapacity > 0);
 
--- Students Gender Check
-ALTER TABLE Students
+-- StudentInfo Gender Check
+ALTER TABLE StudentInfo
     ADD CONSTRAINT CK_Students_Gender 
     CHECK (Gender IN ('Male', 'Female', 'Other'));
 

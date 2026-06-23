@@ -47,7 +47,10 @@ namespace SchoolManagement.Web.Controllers
                 return View(model);
             }
 
-            int performedBy = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             var result = await _service.SaveAsync(model, performedBy, ipAddress);
@@ -85,7 +88,10 @@ namespace SchoolManagement.Web.Controllers
                 return View(model);
             }
 
-            int performedBy = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             var result = await _service.SaveAsync(model, performedBy, ipAddress);
@@ -114,7 +120,10 @@ namespace SchoolManagement.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            int performedBy = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
             var result = await _service.DeleteAsync(id, performedBy, ipAddress);
@@ -126,6 +135,13 @@ namespace SchoolManagement.Web.Controllers
 
             TempData["ErrorMessage"] = result.Message;
             return RedirectToAction(nameof(Index));
+        }
+
+        private bool TryGetCurrentUserId(out int userId)
+        {
+            userId = 0;
+            var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(value, out userId);
         }
     }
 }

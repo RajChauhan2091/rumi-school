@@ -392,10 +392,11 @@ VALUES
     ('Administrator', 1),
     ('Clerk', 1);
 
--- 2. Seed Default Admin User (Password: Admin@123)
+-- 2. Seed Default Admin User
+-- Supply AdminPasswordHash through sqlcmd or your deployment secret store.
 INSERT INTO Users (Username, PasswordHash, FullName, EmailAddress, CreatedBy)
 VALUES 
-    ('admin', 'AQAAAAEAACcQAAAAEL/5rBAXlEOyPr8qkI3zrkG9s7dxmeW1CavmFnI9hhntrdub38kMW0xsNBhNLh5X3A==', 'System Administrator', 'admin@sms.com', 1);
+    ('admin', '$(AdminPasswordHash)', 'System Administrator', 'admin@sms.com', 1);
 
 -- 3. Map Admin User to Administrator Role
 INSERT INTO UserRoles (UserId, RoleId, CreatedBy)
