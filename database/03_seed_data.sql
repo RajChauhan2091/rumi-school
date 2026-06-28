@@ -1,4 +1,4 @@
--- Step 6: Seed Data Script
+-- Seed data script/* Generated from the original seed data SQL file */-- Step 6: Seed Data Script
 USE SMS;
 GO
 
@@ -138,5 +138,6 @@ INSERT INTO PaymentDetail (StudentID, FinancialYearID, FeeID, SemesterID, Paymen
 VALUES 
     (1, 2, 3, 1, 'Cash', 'CASH-0001', 1, 7000.00, 1, 1);
 GO
+
 
 

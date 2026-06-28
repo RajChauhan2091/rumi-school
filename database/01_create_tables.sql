@@ -1,3 +1,11 @@
+-- Consolidated table and schema setup/* Generated from the original split SQL files */-- Step 2: Database Creation Script
+CREATE DATABASE SMS;
+GO
+USE SMS;
+GO
+
+
+
 -- Step 3: Table Creation Script
 -- Note: Contains only table definitions and primary keys. No foreign keys, unique constraints, check constraints, or indexes are included.
 
@@ -333,4 +341,251 @@ CREATE TABLE StaffDetail (
     IsDeleted BIT NOT NULL DEFAULT 0
 );
 GO
+
+
+
+-- Step 4: Constraints Script (Foreign Keys and Check Constraints)
+USE SMS;
+GO
+
+-- ============================================================================
+-- 1. FOREIGN KEY CONSTRAINTS
+-- ============================================================================
+
+-- ClassSchedules Foreign Keys
+ALTER TABLE ClassSchedules
+    ADD CONSTRAINT FK_ClassSchedules_Classes_ClassId 
+    FOREIGN KEY (ClassId) REFERENCES ClassMaster(ClassId);
+
+ALTER TABLE ClassSchedules
+    ADD CONSTRAINT FK_ClassSchedules_Divisions_DivisionId 
+    FOREIGN KEY (DivisionId) REFERENCES DivisionMaster(DivisionId);
+
+ALTER TABLE ClassSchedules
+    ADD CONSTRAINT FK_ClassSchedules_FinancialYears_FinancialYearId 
+    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+
+-- StudentInfo Foreign Keys
+ALTER TABLE StudentInfo
+    ADD CONSTRAINT FK_Students_FinancialYears_AdmissionFinancialYearId 
+    FOREIGN KEY (AdmissionFinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+
+-- StudentMappings Foreign Keys
+ALTER TABLE StudentMappings
+    ADD CONSTRAINT FK_StudentMappings_Students_StudentId 
+    FOREIGN KEY (StudentId) REFERENCES StudentInfo(StudentId);
+
+ALTER TABLE StudentMappings
+    ADD CONSTRAINT FK_StudentMappings_ClassSchedules_ClassScheduleId 
+    FOREIGN KEY (ClassScheduleId) REFERENCES ClassSchedules(ClassScheduleId);
+
+ALTER TABLE StudentMappings
+    ADD CONSTRAINT FK_StudentMappings_FinancialYears_FinancialYearId 
+    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+
+-- UserRoles Foreign Keys
+ALTER TABLE UserRoles
+    ADD CONSTRAINT FK_UserRoles_Users_UserId 
+    FOREIGN KEY (UserId) REFERENCES Users(UserId);
+
+ALTER TABLE UserRoles
+    ADD CONSTRAINT FK_UserRoles_Roles_RoleId 
+    FOREIGN KEY (RoleId) REFERENCES Roles(RoleId);
+
+-- ClassSchedules -> StaffDetail
+ALTER TABLE ClassSchedules
+    ADD CONSTRAINT FK_ClassSchedules_StaffDetail_StaffId
+    FOREIGN KEY (StaffId) REFERENCES StaffDetail(StaffID);
+
+-- FeeDetail Foreign Keys
+ALTER TABLE FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_FeeMaster_FeeId
+    FOREIGN KEY (FeeID) REFERENCES FeeMaster(FeeID);
+
+ALTER TABLE FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_ClassMaster_ClassId
+    FOREIGN KEY (ClassID) REFERENCES ClassMaster(ClassId);
+
+ALTER TABLE FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_FinancialYears_FinancialYearId
+    FOREIGN KEY (FinancialYearID) REFERENCES FinancialYear(FinancialYearId);
+
+ALTER TABLE FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_SemesterMaster_SemesterId
+    FOREIGN KEY (SemesterID) REFERENCES SemesterMaster(SemesterID);
+
+-- PaymentDetail Foreign Keys
+ALTER TABLE PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_Students_StudentId
+    FOREIGN KEY (StudentID) REFERENCES StudentInfo(StudentId);
+
+ALTER TABLE PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_FinancialYears_FinancialYearId
+    FOREIGN KEY (FinancialYearID) REFERENCES FinancialYear(FinancialYearId);
+
+ALTER TABLE PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_FeeMaster_FeeId
+    FOREIGN KEY (FeeID) REFERENCES FeeMaster(FeeID);
+
+ALTER TABLE PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_SemesterMaster_SemesterId
+    FOREIGN KEY (SemesterID) REFERENCES SemesterMaster(SemesterID);
+
+-- StaffDetail -> StaffTypeMaster
+ALTER TABLE StaffDetail
+    ADD CONSTRAINT FK_StaffDetail_StaffTypeMaster_StaffType
+    FOREIGN KEY (StaffType) REFERENCES StaffTypeMaster(StaffTypeID);
+
+
+-- ============================================================================
+-- 2. CHECK CONSTRAINTS
+-- ============================================================================
+
+-- FinancialYear StartDate & EndDate Check
+ALTER TABLE FinancialYear
+    ADD CONSTRAINT CK_FinancialYears_Dates 
+    CHECK (StartDate < EndDate);
+
+-- ClassSchedules MaxCapacity Check
+ALTER TABLE ClassSchedules
+    ADD CONSTRAINT CK_ClassSchedules_MaxCapacity 
+    CHECK (MaxCapacity > 0);
+
+-- StudentInfo Gender Check
+ALTER TABLE StudentInfo
+    ADD CONSTRAINT CK_Students_Gender 
+    CHECK (Gender IN ('Male', 'Female', 'Other'));
+
+-- AuditLogs OperationType Check
+ALTER TABLE AuditLogs
+    ADD CONSTRAINT CK_AuditLogs_OperationType 
+    CHECK (OperationType IN ('INSERT', 'UPDATE', 'DELETE'));
+
+-- FeeMaster Fee Check
+ALTER TABLE FeeMaster
+    ADD CONSTRAINT CK_FeeMaster_Fee
+    CHECK (Fee >= 0);
+
+-- PaymentDetail Checks
+ALTER TABLE PaymentDetail
+    ADD CONSTRAINT CK_PaymentDetail_FeePaid
+    CHECK (FeePaid >= 0);
+
+ALTER TABLE PaymentDetail
+    ADD CONSTRAINT CK_PaymentDetail_TotalInstallment
+    CHECK (TotalInstallment > 0);
+
+ALTER TABLE PaymentDetail
+    ADD CONSTRAINT CK_PaymentDetail_PaymentMode
+    CHECK (PaymentMode IN ('Cash', 'Card', 'UPI', 'NetBanking', 'Cheque'));
+GO
+
+
+
+-- Step 5: Indexes Script
+USE SMS;
+GO
+
+-- ============================================================================
+-- 1. UNIQUE FILTERED INDEXES (For Soft-Delete Uniqueness & Logic Enforcements)
+-- ============================================================================
+
+-- Enforce only ONE current financial year among active (non-deleted) records
+CREATE UNIQUE INDEX UX_FinancialYears_IsCurrent 
+ON FinancialYear(IsCurrent) 
+WHERE IsCurrent = 1 AND IsDeleted = 0;
+
+-- Enforce unique FinancialYear name among active records
+CREATE UNIQUE INDEX UX_FinancialYears_FinancialYear 
+ON FinancialYear(FinancialYear) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique DivisionName among active records
+CREATE UNIQUE INDEX UX_Divisions_DivisionName 
+ON DivisionMaster(DivisionName) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique ClassName among active records
+CREATE UNIQUE INDEX UX_Classes_ClassName 
+ON ClassMaster(ClassName) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique ClassSchedules (FinancialYearId + ClassId + DivisionId) among active records
+CREATE UNIQUE INDEX UX_ClassSchedules_Year_Class_Div 
+ON ClassSchedules(FinancialYearId, ClassId, DivisionId) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique GrNo (General Register Number) for students among active records
+CREATE UNIQUE INDEX UX_Students_GrNo 
+ON StudentInfo(GrNo) 
+WHERE IsDeleted = 0;
+
+-- Enforce one student can belong to only one class schedule per financial year among active records
+CREATE UNIQUE INDEX UX_StudentMappings_Year_Student 
+ON StudentMappings(FinancialYearId, StudentId) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique RollNo within a ClassSchedule among active records
+CREATE UNIQUE INDEX UX_StudentMappings_Schedule_RollNo 
+ON StudentMappings(ClassScheduleId, RollNo) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique Username among active records
+CREATE UNIQUE INDEX UX_Users_Username 
+ON Users(Username) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique RoleName among active records
+CREATE UNIQUE INDEX UX_Roles_RoleName 
+ON Roles(RoleName) 
+WHERE IsDeleted = 0;
+
+-- Enforce unique mapping between User and Role among active records
+CREATE UNIQUE INDEX UX_UserRoles_User_Role 
+ON UserRoles(UserId, RoleId) 
+WHERE IsDeleted = 0;
+
+
+-- ============================================================================
+-- 2. NON-CLUSTERED INDEXES (For Performance Optimization)
+-- ============================================================================
+
+-- Optimize Student Search by Name
+CREATE NONCLUSTERED INDEX IX_Students_Name 
+ON StudentInfo(LastName, FirstName, MiddleName) 
+WHERE IsDeleted = 0;
+
+-- Optimize Student Search by Mobile Number
+CREATE NONCLUSTERED INDEX IX_Students_FatherMobileNumber 
+ON StudentInfo(FatherMobileNumber) 
+WHERE IsDeleted = 0;
+
+-- Optimize Student Search by Email
+CREATE NONCLUSTERED INDEX IX_Students_EmailAddress 
+ON StudentInfo(EmailAddress) 
+WHERE IsDeleted = 0 AND EmailAddress IS NOT NULL;
+
+-- Optimize Dashboard Queries: Student Mappings queries
+CREATE NONCLUSTERED INDEX IX_StudentMappings_ClassScheduleId 
+ON StudentMappings(ClassScheduleId) 
+INCLUDE (StudentId, RollNo) 
+WHERE IsDeleted = 0;
+
+-- Optimize Dashboard Queries: Student count by Financial Year
+CREATE NONCLUSTERED INDEX IX_StudentMappings_FinancialYearId 
+ON StudentMappings(FinancialYearId) 
+INCLUDE (StudentId) 
+WHERE IsDeleted = 0;
+
+-- Optimize Audit Log Retrieval by Table Name
+CREATE NONCLUSTERED INDEX IX_AuditLogs_TableName_RecordId 
+ON AuditLogs(TableName, RecordId);
+
+-- Optimize Audit Log Retrieval by Date
+CREATE NONCLUSTERED INDEX IX_AuditLogs_CreatedDate 
+ON AuditLogs(CreatedDate);
+GO
+
+
+
 

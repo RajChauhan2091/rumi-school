@@ -154,6 +154,19 @@
         @RenderBody()
     }
 
+    <!-- Offline Alert -->
+    <div id="offlineAlert" class="offline-alert" style="display: none;">
+        <div class="offline-alert-content">
+            <div class="offline-alert-icon">
+                <i class="bi bi-wifi-off"></i>
+            </div>
+            <div class="offline-alert-message">
+                <h5>No Internet Connection</h5>
+                <p>You are currently offline. Some features may not work properly. Please check your internet connection.</p>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <!-- DataTables JS & Buttons Extensions -->
@@ -167,6 +180,7 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/connectivity-check.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
