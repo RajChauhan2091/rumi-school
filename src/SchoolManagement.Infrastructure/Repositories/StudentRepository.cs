@@ -56,7 +56,7 @@ namespace SchoolManagement.Infrastructure.Repositories
                     "@PlaceOfBirth, @Nationality, @BloodGroup, @Category, @Religion, @AadhaarNumber, " +
                     "@AddressLine1, @AddressLine2, @City, @State, @Country, @PinCode, " +
                     "@FatherName, @FatherOccupation, @FatherMobileNumber, @MotherName, @MotherOccupation, @MotherMobileNumber, " +
-                    "@GuardianName, @GuardianMobileNumber, @EmergencyContactNumber, " +
+                    "@GuardianName, @GuardianMobileNumber, @Guardian2Name, @Guardian2MobileNumber, @EmergencyContactNumber, " +
                     "@PreviousSchoolName, @AdmissionFinancialYearId, @EmailAddress, " +
                     "@ClassScheduleId, @RollNo, @PerformedBy, @IPAddress",
                     new SqlParameter("@StudentId", entity.StudentId),
@@ -67,7 +67,7 @@ namespace SchoolManagement.Infrastructure.Repositories
                     new SqlParameter("@LastName", entity.LastName ?? (object)DBNull.Value),
                     new SqlParameter("@DateOfBirth", entity.DateOfBirth),
                     new SqlParameter("@Gender", entity.Gender ?? (object)DBNull.Value),
-                    new SqlParameter("@StudentPhoto", entity.StudentPhoto ?? (object)DBNull.Value),
+                    new SqlParameter("@StudentPhoto", System.Data.SqlDbType.VarBinary) { Value = (object?)entity.StudentPhoto ?? DBNull.Value },
                     new SqlParameter("@PlaceOfBirth", entity.PlaceOfBirth ?? (object)DBNull.Value),
                     new SqlParameter("@Nationality", entity.Nationality ?? (object)DBNull.Value),
                     new SqlParameter("@BloodGroup", entity.BloodGroup ?? (object)DBNull.Value),
@@ -88,6 +88,8 @@ namespace SchoolManagement.Infrastructure.Repositories
                     new SqlParameter("@MotherMobileNumber", entity.MotherMobileNumber ?? (object)DBNull.Value),
                     new SqlParameter("@GuardianName", entity.GuardianName ?? (object)DBNull.Value),
                     new SqlParameter("@GuardianMobileNumber", entity.GuardianMobileNumber ?? (object)DBNull.Value),
+                    new SqlParameter("@Guardian2Name", entity.Guardian2Name ?? (object)DBNull.Value),
+                    new SqlParameter("@Guardian2MobileNumber", entity.Guardian2MobileNumber ?? (object)DBNull.Value),
                     new SqlParameter("@EmergencyContactNumber", entity.EmergencyContactNumber ?? (object)DBNull.Value),
                     new SqlParameter("@PreviousSchoolName", entity.PreviousSchoolName ?? (object)DBNull.Value),
                     new SqlParameter("@AdmissionFinancialYearId", entity.AdmissionFinancialYearId),

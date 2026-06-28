@@ -20,6 +20,11 @@ namespace SchoolManagement.Application.Services
             return await _repository.GetAllAsync();
         }
 
+        public async Task<StudentPaymentsView?> GetPaymentByIdAsync(int paymentDetailId)
+        {
+            return await _repository.GetPaymentByIdAsync(paymentDetailId);
+        }
+
         public async Task<IEnumerable<StudentPaymentsView>> GetByStudentAsync(int studentId, int? financialYearId = null)
         {
             return await _repository.GetByStudentAsync(studentId, financialYearId);

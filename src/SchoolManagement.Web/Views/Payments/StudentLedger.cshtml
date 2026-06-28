@@ -65,7 +65,7 @@
                                 @foreach (var item in Model)
                                 {
                                     <tr>
-                                        <td>#@item.PaymentDetailID</td>
+                                        <td>RUMI-@($"{item.PaymentDetailID:D3}")</td>
                                         <td class="fw-bold">@item.SemesterName</td>
                                         <td>@item.CreatedDate.ToString("dd-MM-yyyy HH:mm")</td>
                                         <td><span class="badge bg-secondary">@item.PaymentMode</span></td>
@@ -94,12 +94,20 @@
                                             }
                                         </td>
                                         <td>
-                                            <form asp-action="Delete" asp-route-id="@item.PaymentDetailID" asp-route-returnStudentId="@student.StudentId" method="post" class="d-inline" onsubmit="return confirmDelete(this);">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Payment">
-                                                    <i class="bi bi-trash3"></i>
-                                                </button>
-                                            </form>
+                                            <div class="btn-group btn-group-sm">
+                                                <a asp-action="Details" asp-route-id="@item.PaymentDetailID" class="btn btn-outline-success btn-sm" title="View Details">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@item.PaymentDetailID" class="btn btn-outline-primary btn-sm" title="Edit Payment">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form asp-action="Delete" asp-route-id="@item.PaymentDetailID" asp-route-returnStudentId="@student.StudentId" method="post" class="d-inline" onsubmit="return confirmDelete(this);">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Payment">
+                                                        <i class="bi bi-trash3"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 }

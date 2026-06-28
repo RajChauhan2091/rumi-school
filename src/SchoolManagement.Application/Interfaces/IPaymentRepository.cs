@@ -8,6 +8,7 @@ namespace SchoolManagement.Application.Interfaces
     public interface IPaymentRepository
     {
         Task<IEnumerable<StudentPaymentsView>> GetAllAsync();
+        Task<StudentPaymentsView?> GetPaymentByIdAsync(int paymentDetailId);
         Task<IEnumerable<StudentPaymentsView>> GetByStudentAsync(int studentId, int? financialYearId = null);
         Task<DbOperationResult> SavePaymentAsync(PaymentDetail entity, int performedBy, string ipAddress);
         Task<DbOperationResult> DeletePaymentAsync(int paymentDetailId, int performedBy, string ipAddress);

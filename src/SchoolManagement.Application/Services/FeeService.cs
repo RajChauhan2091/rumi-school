@@ -20,6 +20,11 @@ namespace SchoolManagement.Application.Services
             return await _repository.GetFeeMasterAllAsync();
         }
 
+        public async Task<FeeMaster?> GetFeeMasterByIdAsync(int id)
+        {
+            return await _repository.GetFeeMasterByIdAsync(id);
+        }
+
         public async Task<DbOperationResult> SaveFeeMasterAsync(FeeMaster entity, int performedBy, string ipAddress)
         {
             return await _repository.SaveFeeMasterAsync(entity, performedBy, ipAddress);
@@ -48,6 +53,11 @@ namespace SchoolManagement.Application.Services
         public async Task<IEnumerable<SemesterMaster>> GetSemestersAsync()
         {
             return await _repository.GetSemestersAsync();
+        }
+
+        public async Task<IEnumerable<SemesterMaster>> GetSemestersAllAsync()
+        {
+            return await _repository.GetSemestersAllAsync();
         }
 
         public async Task<SemesterMaster?> GetSemesterByIdAsync(int id)

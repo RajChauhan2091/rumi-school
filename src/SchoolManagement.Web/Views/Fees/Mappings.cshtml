@@ -3,9 +3,9 @@
     ViewData["Title"] = "Class Fee Structures";
 }
 
-<div class="content-card">
+<div class="content-card animate-in">
     <div class="card-header-crimson">
-        <h5>Class Fee structures</h5>
+        <h5><i class="bi bi-diagram-3-fill me-1" style="font-size: 0.85rem; color: var(--primary);"></i>Class Fee structures</h5>
         <div>
             <a asp-action="Index" class="btn btn-sm btn-outline-light me-1"><i class="bi bi-gear-fill me-1"></i> Fee Configs</a>
             <a asp-action="CreateMapping" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Fee Structure</a>
@@ -28,7 +28,7 @@
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td class="fw-semibold text-primary">@item.ClassName</td>
+                            <td class="fw-semibold" style="color: var(--primary);">@item.ClassName</td>
                             <td class="fw-bold">@item.SemesterName</td>
                             <td>@item.FinancialYear</td>
                             <td class="fw-bold text-dark">₹ @item.FeeAmount.ToString("N2")</td>
@@ -43,6 +43,7 @@
                                 }
                             </td>
                             <td class="text-end">
+                                <a asp-action="EditMapping" asp-route-id="@item.FeeDetailID" class="btn btn-sm btn-outline-primary me-1" title="Edit Mapping"><i class="bi bi-pencil-fill"></i></a>
                                 <form asp-action="DeleteMapping" asp-route-id="@item.FeeDetailID" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to remove this structure mapping?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Mapping"><i class="bi bi-trash-fill"></i></button>
                                 </form>

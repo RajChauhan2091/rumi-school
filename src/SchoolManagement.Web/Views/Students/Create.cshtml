@@ -3,9 +3,9 @@
     ViewData["Title"] = "Student Admission Form";
 }
 
-<div class="content-card">
+<div class="content-card animate-in">
     <div class="card-header-crimson">
-        <h5>New Student Registration</h5>
+        <h5><i class="bi bi-person-plus-fill me-1" style="font-size: 0.85rem; color: var(--primary);"></i> New Student Registration</h5>
         <a asp-action="Index" class="btn btn-sm btn-secondary"><i class="bi bi-arrow-left me-1"></i> Back</a>
     </div>
     <div class="card-body-custom">
@@ -23,7 +23,7 @@
                     </div>
                     <div class="col-md-3">
                         <label asp-for="GrNo" class="form-label fw-medium">GR Number</label>
-                        <input asp-for="GrNo" type="text" class="form-control" placeholder="e.g. GR-001" required />
+                        <input asp-for="GrNo" type="text" class="form-control" placeholder="e.g. GR-001" />
                         <span asp-validation-for="GrNo" class="text-danger"></span>
                     </div>
                     <div class="col-md-3">
@@ -81,32 +81,9 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label asp-for="Category" class="form-label fw-medium">Category</label>
-                        <select asp-for="Category" asp-items="ViewBag.Categories" class="form-select">
-                            <option value="">-- Select Category --</option>
-                        </select>
-                        <span asp-validation-for="Category" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="Religion" class="form-label fw-medium">Religion</label>
-                        <input asp-for="Religion" class="form-control" placeholder="e.g. Hindu, Muslim..." />
-                        <span asp-validation-for="Religion" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="AadhaarNumber" class="form-label fw-medium">Aadhaar Number (12 digit)</label>
-                        <input asp-for="AadhaarNumber" class="form-control" maxlength="12" placeholder="Enter 12 digit Aadhaar" />
+                        <label asp-for="AadhaarNumber" class="form-label fw-medium">Aadhaar Number</label>
+                        <input asp-for="AadhaarNumber" class="form-control" maxlength="14" placeholder="Enter Aadhaar Number" />
                         <span asp-validation-for="AadhaarNumber" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label asp-for="PlaceOfBirth" class="form-label fw-medium">Place of Birth</label>
-                        <input asp-for="PlaceOfBirth" class="form-control" placeholder="City of birth" />
-                        <span asp-validation-for="PlaceOfBirth" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="Nationality" class="form-label fw-medium">Nationality</label>
-                        <input asp-for="Nationality" class="form-control" />
-                        <span asp-validation-for="Nationality" class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
                         <label asp-for="EmailAddress" class="form-label fw-medium">Email Address</label>
@@ -130,22 +107,12 @@
                         <input asp-for="AddressLine2" class="form-control" placeholder="Landmark, Locality" />
                         <span asp-validation-for="AddressLine2" class="text-danger"></span>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <label asp-for="City" class="form-label fw-medium">City</label>
                         <input asp-for="City" class="form-control" placeholder="Enter City" />
                         <span asp-validation-for="City" class="text-danger"></span>
                     </div>
-                    <div class="col-md-3">
-                        <label asp-for="State" class="form-label fw-medium">State</label>
-                        <input asp-for="State" class="form-control" placeholder="Enter State" />
-                        <span asp-validation-for="State" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="Country" class="form-label fw-medium">Country</label>
-                        <input asp-for="Country" class="form-control" />
-                        <span asp-validation-for="Country" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <label asp-for="PinCode" class="form-label fw-medium">Pin Code</label>
                         <input asp-for="PinCode" class="form-control" placeholder="6-digit ZIP" />
                         <span asp-validation-for="PinCode" class="text-danger"></span>
@@ -200,6 +167,16 @@
                         <span asp-validation-for="GuardianMobileNumber" class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
+                        <label asp-for="Guardian2Name" class="form-label fw-medium">Guardian 2 Name</label>
+                        <input asp-for="Guardian2Name" class="form-control" placeholder="Second Guardian name" />
+                        <span asp-validation-for="Guardian2Name" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Guardian2MobileNumber" class="form-label fw-medium">Guardian 2 Mobile Number</label>
+                        <input asp-for="Guardian2MobileNumber" class="form-control" placeholder="Second Guardian Mobile" />
+                        <span asp-validation-for="Guardian2MobileNumber" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
                         <label asp-for="EmergencyContactNumber" class="form-label fw-medium text-danger">Emergency Contact Number</label>
                         <input asp-for="EmergencyContactNumber" class="form-control" placeholder="Emergency Mobile" />
                         <span asp-validation-for="EmergencyContactNumber" class="text-danger"></span>
@@ -249,4 +226,30 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            var aadhaarInput = $('#AadhaarNumber');
+            if (aadhaarInput.length) {
+                formatAadhaar(aadhaarInput[0]);
+                aadhaarInput.on('input', function() {
+                    formatAadhaar(this);
+                });
+            }
+
+            function formatAadhaar(input) {
+                var value = input.value.replace(/\D/g, '');
+                var formatted = '';
+                if (value.length > 0) {
+                    formatted += value.substr(0, 4);
+                }
+                if (value.length > 4) {
+                    formatted += '-' + value.substr(4, 4);
+                }
+                if (value.length > 8) {
+                    formatted += '-' + value.substr(8, 4);
+                }
+                input.value = formatted;
+            }
+        });
+    </script>
 }

@@ -1,0 +1,68 @@
+@model SchoolManagement.Domain.Entities.FeeDetail
+@{
+    ViewData["Title"] = "Edit Fee Mapping";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="content-card">
+            <div class="card-header-crimson">
+                <h5>Edit Class Fee Structure Mapping</h5>
+            </div>
+            <div class="card-body-custom">
+                <form asp-action="EditMapping" method="post">
+                    <input type="hidden" asp-for="FeeDetailID" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="ClassID" class="form-label fw-medium">Class</label>
+                        <select asp-for="ClassID" asp-items="ViewBag.Classes" class="form-select">
+                            <option value="">-- Select Class --</option>
+                        </select>
+                        <span asp-validation-for="ClassID" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="SemesterID" class="form-label fw-medium">Semester</label>
+                        <select asp-for="SemesterID" asp-items="ViewBag.Semesters" class="form-select">
+                            <option value="">-- Select Semester --</option>
+                        </select>
+                        <span asp-validation-for="SemesterID" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FinancialYearID" class="form-label fw-medium">Academic Year</label>
+                        <select asp-for="FinancialYearID" asp-items="ViewBag.FinancialYears" class="form-select">
+                            <option value="">-- Select Year --</option>
+                        </select>
+                        <span asp-validation-for="FinancialYearID" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FeeID" class="form-label fw-medium">Select Fee Structure Amount (₹)</label>
+                        <select asp-for="FeeID" asp-items="ViewBag.Fees" class="form-select">
+                            <option value="">-- Select Fee --</option>
+                        </select>
+                        <span asp-validation-for="FeeID" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" type="checkbox" class="form-check-input" id="mappingActiveSwitch" />
+                            <label class="form-check-label" for="mappingActiveSwitch">Is Active</label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Mappings" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

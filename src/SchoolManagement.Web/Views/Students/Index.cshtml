@@ -4,9 +4,9 @@
 }
 
 <!-- Search & Filter Card -->
-<div class="content-card mb-4">
+<div class="content-card mb-4 animate-in">
     <div class="card-header-crimson">
-        <h5>Search & Filter Students</h5>
+        <h5><i class="bi bi-funnel-fill me-1" style="font-size: 0.85rem; color: var(--text-muted);"></i> Search & Filter</h5>
         @if (User.IsInRole("Administrator") || User.IsInRole("Clerk"))
         {
             <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-person-plus-fill me-1"></i> Admit Student</a>
@@ -16,23 +16,23 @@
         <form method="get" asp-action="Index">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label fw-medium text-muted">Search Text</label>
+                    <label class="form-label">Search Text</label>
                     <input type="text" name="searchText" value="@ViewBag.SearchText" class="form-control" placeholder="Name, GR No, Aadhaar..." />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-medium text-muted">Class Schedule</label>
+                    <label class="form-label">Class Schedule</label>
                     <select name="classScheduleId" asp-items="ViewBag.ClassSchedules" class="form-select">
                         <option value="">-- All Classes --</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-medium text-muted">Academic Year</label>
+                    <label class="form-label">Academic Year</label>
                     <select name="financialYearId" asp-items="ViewBag.FinancialYears" class="form-select">
                         <option value="">-- All Years --</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label fw-medium text-muted">Gender</label>
+                    <label class="form-label">Gender</label>
                     <select name="gender" asp-items="ViewBag.Genders" class="form-select">
                         <option value="">-- All --</option>
                     </select>
@@ -46,9 +46,10 @@
 </div>
 
 <!-- Students Grid/Table -->
-<div class="content-card">
+<div class="content-card animate-in">
     <div class="card-header-crimson">
-        <h5>Admitted Students</h5>
+        <h5><i class="bi bi-people-fill me-1" style="font-size: 0.85rem; color: var(--primary);"></i> Admitted Students</h5>
+        <span class="text-muted" style="font-size: 0.8rem; font-weight: 600;">@Model.Count() records</span>
     </div>
     <div class="card-body-custom p-0">
         @if (Model.Any())
@@ -86,7 +87,7 @@
                                     }
                                 </td>
                                 <td class="fw-semibold">@item.GrNo</td>
-                                <td class="fw-bold text-primary">@item.FullName</td>
+                                <td class="fw-bold" style="color: var(--primary);">@item.FullName</td>
                                 <td>@item.Gender</td>
                                 <td>@item.DateOfBirth.ToString("dd-MMM-yyyy")</td>
                                 <td>
@@ -126,9 +127,9 @@
         }
         else
         {
-            <div class="text-center py-5 text-muted">
-                <i class="bi bi-search fs-2"></i>
-                <p class="mt-2">No students found matching the selected criteria.</p>
+            <div class="empty-state">
+                <i class="bi bi-search"></i>
+                <p>No students found matching the selected criteria.</p>
             </div>
         }
     </div>

@@ -39,7 +39,7 @@ namespace SchoolManagement.Infrastructure.Repositories
         {
             var result = await _context.DbOperationResults
                 .FromSqlRaw(
-                    "EXEC usp_StaffDetail_Save @StaffId, @StaffFirstName, @StaffMiddleName, @StaffLastName, @StaffType, @Mobileno, @EmergencyContact, @Address, @AadhaarNo, @BankName, @IFSCCode, @AccountNo, @PanNo, @StaffPic, @DOB, @IsActive, @PerformedBy, @IPAddress",
+                    "EXEC usp_StaffDetail_Save @StaffId, @StaffFirstName, @StaffMiddleName, @StaffLastName, @StaffType, @Mobileno, @EmergencyContact, @AddressLine1, @AddressLine2, @AadhaarNo, @BankName, @IFSCCode, @AccountNo, @PanNo, @StaffPic, @DOB, @IsActive, @PerformedBy, @IPAddress",
                     new SqlParameter("@StaffId", entity.StaffID),
                     new SqlParameter("@StaffFirstName", entity.StaffFirstName),
                     new SqlParameter("@StaffMiddleName", entity.StaffMiddleName ?? (object)DBNull.Value),
@@ -47,12 +47,13 @@ namespace SchoolManagement.Infrastructure.Repositories
                     new SqlParameter("@StaffType", entity.StaffType),
                     new SqlParameter("@Mobileno", entity.Mobileno),
                     new SqlParameter("@EmergencyContact", entity.EmergencyContact),
-                    new SqlParameter("@Address", entity.Address),
-                    new SqlParameter("@AadhaarNo", entity.AadhaarNo),
-                    new SqlParameter("@BankName", entity.BankName),
-                    new SqlParameter("@IFSCCode", entity.IFSCCode),
-                    new SqlParameter("@AccountNo", entity.AccountNo),
-                    new SqlParameter("@PanNo", entity.PanNo),
+                    new SqlParameter("@AddressLine1", entity.AddressLine1),
+                    new SqlParameter("@AddressLine2", entity.AddressLine2 ?? (object)DBNull.Value),
+                    new SqlParameter("@AadhaarNo", entity.AadhaarNo ?? (object)DBNull.Value),
+                    new SqlParameter("@BankName", entity.BankName ?? (object)DBNull.Value),
+                    new SqlParameter("@IFSCCode", entity.IFSCCode ?? (object)DBNull.Value),
+                    new SqlParameter("@AccountNo", entity.AccountNo ?? (object)DBNull.Value),
+                    new SqlParameter("@PanNo", entity.PanNo ?? (object)DBNull.Value),
                     new SqlParameter("@StaffPic", entity.StaffPic ?? (object)DBNull.Value),
                     new SqlParameter("@DOB", entity.DOB),
                     new SqlParameter("@IsActive", entity.IsActive),

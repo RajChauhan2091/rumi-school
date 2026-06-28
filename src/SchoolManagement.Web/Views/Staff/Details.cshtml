@@ -5,9 +5,9 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="content-card">
+        <div class="content-card animate-in">
             <div class="card-header-crimson">
-                <h5>Staff Profile Details</h5>
+                <h5><i class="bi bi-person-badge me-1" style="font-size: 0.85rem; color: var(--primary);"></i> Staff Profile Details</h5>
                 <a asp-action="Index" class="btn btn-sm btn-secondary"><i class="bi bi-arrow-left me-1"></i> Back to List</a>
             </div>
             <div class="card-body-custom">
@@ -34,7 +34,11 @@
                         <tbody>
                             <tr>
                                 <th class="w-30 bg-light fw-semibold text-muted">Aadhaar Number</th>
-                                <td>@Model.AadhaarNo</td>
+                                <td>
+                                    @(!string.IsNullOrEmpty(Model.AadhaarNo) && Model.AadhaarNo.Length == 12 
+                                        ? $"{Model.AadhaarNo.Substring(0, 4)}-{Model.AadhaarNo.Substring(4, 4)}-{Model.AadhaarNo.Substring(8, 4)}" 
+                                        : Model.AadhaarNo ?? "-")
+                                </td>
                             </tr>
                             <tr>
                                 <th class="bg-light fw-semibold text-muted">PAN Card Number</th>
@@ -50,7 +54,13 @@
                             </tr>
                             <tr>
                                 <th class="bg-light fw-semibold text-muted">Residential Address</th>
-                                <td>@Model.Address</td>
+                                <td>
+                                    @Model.AddressLine1
+                                    @if (!string.IsNullOrEmpty(Model.AddressLine2))
+                                    {
+                                        <br />@Model.AddressLine2
+                                    }
+                                </td>
                             </tr>
                             <tr>
                                 <th class="bg-light fw-semibold text-muted">Bank Name</th>

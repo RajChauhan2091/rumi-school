@@ -83,7 +83,7 @@ CREATE TABLE StudentInfo (
     StudentId INT IDENTITY(1,1) PRIMARY KEY,
     
     -- Basic Information
-    GrNo VARCHAR(20) NOT NULL,
+    GrNo VARCHAR(20) NULL,
     AdmissionDate DATE NOT NULL,
     FirstName VARCHAR(50) NOT NULL,
     MiddleName VARCHAR(50) NULL,
@@ -94,18 +94,18 @@ CREATE TABLE StudentInfo (
     
     -- Personal Information
     PlaceOfBirth VARCHAR(100) NULL,
-    Nationality VARCHAR(50) NOT NULL DEFAULT 'Indian',
+    Nationality VARCHAR(50) NULL,
     BloodGroup VARCHAR(5) NULL,
     Category VARCHAR(30) NULL,
     Religion VARCHAR(50) NULL,
-    AadhaarNumber VARCHAR(12) NULL,
+    AadhaarNumber VARCHAR(15) NULL,
     
     -- Address Information
     AddressLine1 VARCHAR(150) NOT NULL,
     AddressLine2 VARCHAR(150) NULL,
     City VARCHAR(50) NOT NULL,
-    State VARCHAR(50) NOT NULL,
-    Country VARCHAR(50) NOT NULL DEFAULT 'India',
+    State VARCHAR(50) NULL,
+    Country VARCHAR(50) NULL,
     PinCode VARCHAR(10) NOT NULL,
     
     -- Parent Information
@@ -119,6 +119,8 @@ CREATE TABLE StudentInfo (
     -- Guardian Information
     GuardianName VARCHAR(100) NULL,
     GuardianMobileNumber VARCHAR(15) NULL,
+    Guardian2Name VARCHAR(100) NULL,
+    Guardian2MobileNumber VARCHAR(15) NULL,
     EmergencyContactNumber VARCHAR(15) NOT NULL,
     
     -- Academic Information
@@ -288,6 +290,7 @@ CREATE TABLE PaymentDetail (
     SemesterID INT NOT NULL,
     FeePaid DECIMAL(18,2) NOT NULL,
     TotalInstallment INT NOT NULL,
+    Remarks NVARCHAR(250) NULL,
     
     -- Global Audit Columns
     CreatedDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -323,12 +326,13 @@ CREATE TABLE StaffDetail (
     StaffType INT NOT NULL,
     Mobileno VARCHAR(15) NOT NULL,
     EmergencyContact VARCHAR(15) NOT NULL,
-    Address NVARCHAR(255) NOT NULL,
-    AadhaarNo VARCHAR(12) NOT NULL,
-    BankName NVARCHAR(50) NOT NULL,
-    IFSCCode NVARCHAR(20) NOT NULL,
-    AccountNo NVARCHAR(20) NOT NULL,
-    PanNo NVARCHAR(20) NOT NULL,
+    AddressLine1 NVARCHAR(150) NOT NULL,
+    AddressLine2 NVARCHAR(150) NULL,
+    AadhaarNo VARCHAR(15) NULL,
+    BankName NVARCHAR(50) NULL,
+    IFSCCode NVARCHAR(20) NULL,
+    AccountNo NVARCHAR(20) NULL,
+    PanNo NVARCHAR(20) NULL,
     StaffPic NVARCHAR(MAX) NULL, -- stores base64 string
     DOB DATE NOT NULL,
     
@@ -518,7 +522,7 @@ WHERE IsDeleted = 0;
 -- Enforce unique GrNo (General Register Number) for students among active records
 CREATE UNIQUE INDEX UX_Students_GrNo 
 ON StudentInfo(GrNo) 
-WHERE IsDeleted = 0;
+WHERE IsDeleted = 0 AND GrNo IS NOT NULL;
 
 -- Enforce one student can belong to only one class schedule per financial year among active records
 CREATE UNIQUE INDEX UX_StudentMappings_Year_Student 

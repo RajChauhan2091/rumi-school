@@ -5,9 +5,10 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="content-card">
-            <div class="card-header-crimson">
-                <h5><i class="bi bi-cash-coin me-2"></i>All Payment Records</h5>
+        <div class="content-card animate-in">
+            <div class="card-header-crimson d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-cash-coin me-1" style="font-size: 0.85rem; color: var(--primary);"></i>All Payment Records</h5>
+                <a asp-action="Collect" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Collect Payment</a>
             </div>
             <div class="card-body-custom p-0">
                 <div class="table-responsive">
@@ -25,6 +26,7 @@
                                 <th>Amount Paid (₹)</th>
                                 <th>Remaining Fee (₹)</th>
                                 <th>Installment</th>
+                                <th>Remarks</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -33,9 +35,9 @@
                             @foreach (var item in Model)
                             {
                                 <tr>
-                                    <td class="fw-bold">#@item.PaymentDetailID</td>
+                                    <td class="fw-bold">RUMI-@($"{item.PaymentDetailID:D3}")</td>
                                     <td>
-                                        <a asp-action="StudentLedger" asp-route-studentId="@item.StudentID" class="text-primary text-decoration-none fw-medium">
+                                        <a asp-action="StudentLedger" asp-route-studentId="@item.StudentID" class="text-decoration-none fw-medium" style="color: var(--primary);">
                                             @item.StudentFullName
                                         </a>
                                     </td>
@@ -62,6 +64,11 @@
                                     <td class="fw-bold @(item.FeeRemaining > 0 ? "text-danger" : "text-muted")">₹ @item.FeeRemaining.ToString("N2")</td>
                                     <td>@item.TotalInstallment</td>
                                     <td>
+                                        <span class="text-muted small" title="@item.Remarks">
+                                            @(!string.IsNullOrEmpty(item.Remarks) && item.Remarks.Length > 20 ? item.Remarks.Substring(0, 17) + "..." : item.Remarks ?? "-")
+                                        </span>
+                                    </td>
+                                    <td>
                                         @if (item.IsFullyPaid)
                                         {
                                             <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Fully Paid</span>
@@ -73,9 +80,15 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
+                                            <a asp-action="Details" asp-route-id="@item.PaymentDetailID" class="btn btn-outline-success btn-sm" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.PaymentDetailID" class="btn btn-outline-primary btn-sm" title="Edit Payment">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
                                             @if (!string.IsNullOrEmpty(item.Transactionphoto))
                                             {
-                                                <button class="btn btn-outline-primary btn-sm" onclick="viewReceiptPhoto('@item.Transactionphoto')" title="View Receipt">
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="viewReceiptPhoto('@item.Transactionphoto')" title="View Attachment Image">
                                                     <i class="bi bi-file-earmark-image"></i>
                                                 </button>
                                             }
@@ -143,7 +156,7 @@
                     }
                 ],
                 columnDefs: [
-                    { orderable: false, targets: [12] } // Disable sorting on Actions column
+                    { orderable: false, targets: [13] } // Disable sorting on Actions column
                 ]
             });
         });

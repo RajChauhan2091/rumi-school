@@ -85,13 +85,13 @@ GO
 -- 10. Seed Staff Details (so we can assign them to Class Schedules)
 INSERT INTO StaffDetail (
     StaffFirstName, StaffMiddleName, StaffLastName, StaffType, Mobileno, 
-    EmergencyContact, Address, AadhaarNo, BankName, IFSCCode, AccountNo, 
+    EmergencyContact, AddressLine1, AddressLine2, AadhaarNo, BankName, IFSCCode, AccountNo, 
     PanNo, DOB, IsActive, CreatedBy
 )
 VALUES 
-    ('John', 'Robert', 'Doe', 1, '9876543210', '9876543211', '123 Teacher Lane, City', '123456789012', 'State Bank of India', 'SBIN0001234', '100020003000', 'ABCDE1234F', '1985-05-15', 1, 1),
-    ('Mary', 'Alice', 'Smith', 1, '9876543220', '9876543221', '456 Faculty Road, City', '123456789023', 'HDFC Bank', 'HDFC0004567', '100020003001', 'FGHIJ5678K', '1990-08-22', 1, 1),
-    ('David', 'James', 'Brown', 2, '9876543230', '9876543231', '789 Staff Street, City', '123456789034', 'ICICI Bank', 'ICIC0007890', '100020003002', 'LMNOP9012Q', '1988-12-10', 1, 1);
+    ('John', 'Robert', 'Doe', 1, '9876543210', '9876543211', '123 Teacher Lane', 'City', '1234-5678-9012', 'State Bank of India', 'SBIN0001234', '100020003000', 'ABCDE1234F', '1985-05-15', 1, 1),
+    ('Mary', 'Alice', 'Smith', 1, '9876543220', '9876543221', '456 Faculty Road', 'City', '1234-5678-9023', 'HDFC Bank', 'HDFC0004567', '100020003001', 'FGHIJ5678K', '1990-08-22', 1, 1),
+    ('David', 'James', 'Brown', 2, '9876543230', '9876543231', '789 Staff Street', 'City', '1234-5678-9034', 'ICICI Bank', 'ICIC0007890', '100020003002', 'LMNOP9012Q', '1988-12-10', 1, 1);
 GO
 
 -- 11. Seed Class Schedules (connecting Classes, Divisions, Financial Year, Staff)

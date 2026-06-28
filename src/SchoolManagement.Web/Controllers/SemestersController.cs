@@ -20,7 +20,7 @@ namespace SchoolManagement.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var list = await _feeService.GetSemestersAsync();
+            var list = await _feeService.GetSemestersAllAsync();
             return View(list);
         }
 
@@ -74,6 +74,48 @@ namespace SchoolManagement.Web.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var item = await _feeService.GetSemesterByIdAsync(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            return View(item);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, SemesterMaster model)
+        {
+            if (id != model.SemesterID)
+            {
+                return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
+            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+            var result = await _feeService.SaveSemesterAsync(model, performedBy, ipAddress);
+            if (result.StatusCode == 200)
+            {
+                TempData["SuccessMessage"] = "Semester updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
         }
 
         private bool TryGetCurrentUserId(out int userId)

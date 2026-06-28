@@ -3,159 +3,172 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<!-- Dashboard Filter & Header -->
-<div class="row align-items-center mb-4">
-    <div class="col-md-8">
-        <h3 class="fw-bold mb-1">Overview Summary</h3>
-        <p class="text-muted mb-0">Metrics for Academic Year: <span class="badge bg-primary fs-7 px-3">@Model.SelectedFinancialYear</span></p>
+<!-- Dashboard Header -->
+<div class="row align-items-end mb-4 animate-in">
+    <div class="col-md-7">
+        <h3 class="fw-bold mb-1" style="font-size: 1.5rem; letter-spacing: -0.02em;">Overview Summary</h3>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">
+            Academic Year:
+            <span class="badge rounded-pill px-3 py-1" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); font-size: 0.78rem; font-weight: 700; vertical-align: middle;">
+                @Model.SelectedFinancialYear
+            </span>
+        </p>
     </div>
-    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        <form id="fyForm" method="get" asp-action="Index" class="d-inline-block text-start" style="min-width: 200px;">
-            <label class="form-label text-muted fs-8 mb-1 fw-medium text-uppercase" style="font-size: 0.7rem;">Change Financial Year</label>
-            <select name="financialYearId" asp-items="ViewBag.FinancialYears" class="form-select" onchange="this.form.submit()"></select>
+    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+        <form id="fyForm" method="get" asp-action="Index" class="d-inline-block text-start" style="min-width: 220px;">
+            <label class="form-label mb-1" style="font-size: 0.68rem;">Change Financial Year</label>
+            <select name="financialYearId" asp-items="ViewBag.FinancialYears" class="form-select form-select-sm" onchange="this.form.submit()" style="font-size: 0.85rem;"></select>
         </form>
     </div>
 </div>
 
-<style>
-    .card-hover-effect {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .card-hover-effect:hover {
-        transform: translateY(-4px) scale(1.02);
-    }
-</style>
-
-<!-- Stats Counters Row 1 -->
-<div class="row g-4 mb-4">
-    <div class="col-sm-6 col-lg-3">
-        <div class="stat-card admitted-card shadow h-100" style="border-left-width: 6px;">
-            <div class="d-flex justify-content-between align-items-center">
+<!-- Stats Row 1 -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3 animate-in">
+        <div class="stat-card admitted-card h-100" style="border-left-width: 5px;">
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label text-success fw-bold" style="font-size: 0.8rem;">Admitted Students</div>
-                    <div class="stat-value text-success" style="font-size: 1.8rem; font-weight: 800;">@Model.Metrics.TotalAdmittedStudents</div>
+                    <div class="stat-label" style="color: #38A169;">Admitted Students</div>
+                    <div class="stat-value" style="color: #2F855A;">@Model.Metrics.TotalAdmittedStudents</div>
                 </div>
-                <div class="stat-icon text-success" style="font-size: 1.8rem;">
+                <div class="stat-icon" style="color: #38A169;">
                     <i class="bi bi-person-check-fill"></i>
                 </div>
             </div>
-            <div class="text-success-emphasis fw-medium fs-8 mt-2"><i class="bi bi-shield-check me-1"></i>Total in portal</div>
+            <div class="mt-2" style="font-size: 0.72rem; color: #48BB78; font-weight: 600;">
+                <i class="bi bi-shield-check me-1"></i>Total in portal
+            </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="stat-card h-100" style="border-left: 6px solid #6c757d;">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="col-sm-6 col-lg-3 animate-in">
+        <div class="stat-card h-100" style="border-left: 5px solid #718096;">
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label text-muted fw-bold" style="font-size: 0.8rem;">Mapped Students</div>
-                    <div class="stat-value text-dark" style="font-size: 1.8rem; font-weight: 800;">@Model.Metrics.TotalMappedStudents</div>
+                    <div class="stat-label" style="color: #718096;">Mapped Students</div>
+                    <div class="stat-value" style="color: #4A5568;">@Model.Metrics.TotalMappedStudents</div>
                 </div>
-                <div class="stat-icon text-muted" style="font-size: 1.8rem;">
+                <div class="stat-icon" style="color: #A0AEC0;">
                     <i class="bi bi-people-fill"></i>
                 </div>
             </div>
-            <div class="text-muted fs-8 mt-2">Allocated for FY</div>
+            <div class="mt-2" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">
+                Allocated for FY
+            </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="stat-card classes-card h-100" style="border-left-width: 6px;">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="col-sm-6 col-lg-3 animate-in">
+        <div class="stat-card classes-card h-100" style="border-left-width: 5px;">
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label text-warning fw-bold" style="font-size: 0.8rem;">Active Classes</div>
-                    <div class="stat-value text-warning" style="font-size: 1.8rem; font-weight: 800;">@Model.Metrics.TotalActiveClasses</div>
+                    <div class="stat-label" style="color: #D69E2E;">Active Classes</div>
+                    <div class="stat-value" style="color: #B7791F;">@Model.Metrics.TotalActiveClasses</div>
                 </div>
-                <div class="stat-icon text-warning" style="font-size: 1.8rem;">
+                <div class="stat-icon" style="color: #D69E2E;">
                     <i class="bi bi-journal-bookmark-fill"></i>
                 </div>
             </div>
-            <div class="text-muted fs-8 mt-2">Configurations</div>
+            <div class="mt-2" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">
+                Configurations
+            </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="stat-card capacity-card h-100" style="border-left-width: 6px;">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="col-sm-6 col-lg-3 animate-in">
+        <div class="stat-card capacity-card h-100" style="border-left-width: 5px;">
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label text-primary fw-bold" style="font-size: 0.8rem;">Total Capacity</div>
-                    <div class="stat-value text-primary" style="font-size: 1.8rem; font-weight: 800;">@Model.Metrics.TotalCapacity</div>
+                    <div class="stat-label" style="color: #4299E1;">Total Capacity</div>
+                    <div class="stat-value" style="color: #2B6CB0;">@Model.Metrics.TotalCapacity</div>
                 </div>
-                <div class="stat-icon text-primary" style="font-size: 1.8rem;">
+                <div class="stat-icon" style="color: #4299E1;">
                     <i class="bi bi-building-fill"></i>
                 </div>
             </div>
-            <div class="text-muted fs-8 mt-2">Seat capacity</div>
+            <div class="mt-2" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">
+                Seat capacity
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Stats Counters Row 2 -->
-<div class="row g-4 mb-4">
-    <div class="col-sm-6 col-lg-3">
-        <div class="stat-card h-100" style="border-left: 6px solid #6f42c1;">
-            <div class="d-flex justify-content-between align-items-center">
+<!-- Stats Row 2 -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3 animate-in">
+        <div class="stat-card h-100" style="border-left: 5px solid #805AD5;">
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label fw-bold" style="color: #6f42c1; font-size: 0.8rem;">Total Staff</div>
-                    <div class="stat-value" style="color: #6f42c1; font-size: 1.8rem; font-weight: 800;">@Model.Metrics.TotalStaff</div>
+                    <div class="stat-label" style="color: #805AD5;">Total Staff</div>
+                    <div class="stat-value" style="color: #6B46C1;">@Model.Metrics.TotalStaff</div>
                 </div>
-                <div class="stat-icon" style="color: #6f42c1; font-size: 1.8rem;">
+                <div class="stat-icon" style="color: #805AD5;">
                     <i class="bi bi-person-badge-fill"></i>
                 </div>
             </div>
-            <div class="text-muted fs-8 mt-2">Active personnel</div>
+            <div class="mt-2" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">
+                Active personnel
+            </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="stat-card shadow h-100" style="border-left: 6px solid #198754;">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="col-sm-6 col-lg-3 animate-in">
+        <div class="stat-card h-100" style="border-left: 5px solid #38A169;">
+            <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label text-success fw-bold" style="font-size: 0.8rem;">Fees Collected</div>
-                    <div class="stat-value text-success" style="font-size: 1.5rem; font-weight: 800;">₹@Model.Metrics.TotalFeesCollected.ToString("N0")</div>
+                    <div class="stat-label" style="color: #38A169;">Fees Collected</div>
+                    <div class="stat-value" style="color: #2F855A; font-size: 1.5rem;">₹@Model.Metrics.TotalFeesCollected.ToString("N0")</div>
                 </div>
-                <div class="stat-icon text-success" style="font-size: 1.8rem;">
+                <div class="stat-icon" style="color: #38A169;">
                     <i class="bi bi-cash-coin"></i>
                 </div>
             </div>
-            <div class="text-muted fs-8 mt-2"><i class="bi bi-wallet2 me-1"></i>Collected in FY</div>
+            <div class="mt-2" style="font-size: 0.72rem; color: #48BB78; font-weight: 600;">
+                <i class="bi bi-wallet2 me-1"></i>Collected in FY
+            </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
+    <div class="col-sm-6 col-lg-3 animate-in">
         <a href="@Url.Action("PendingReport", "Payments")" class="text-decoration-none h-100 d-block card-hover-effect">
-            <div class="stat-card shadow h-100" style="border-left: 6px solid #fd7e14; background-color: #fffbf7;">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="stat-card h-100" style="border-left: 5px solid #ED8936; background: linear-gradient(135deg, #FFFAF0 0%, #fff 100%);">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <div class="stat-label fw-bold" style="color: #fd7e14; font-size: 0.8rem;">Pending Fee Students</div>
-                        <div class="stat-value" style="color: #fd7e14; font-size: 1.8rem; font-weight: 800;">@Model.Metrics.TotalPendingFeesStudents</div>
+                        <div class="stat-label" style="color: #DD6B20;">Pending Students</div>
+                        <div class="stat-value" style="color: #C05621;">@Model.Metrics.TotalPendingFeesStudents</div>
                     </div>
-                    <div class="stat-icon" style="color: #fd7e14; font-size: 1.8rem;">
+                    <div class="stat-icon" style="color: #ED8936;">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                     </div>
                 </div>
-                <div class="text-warning-emphasis fw-medium fs-8 mt-2"><i class="bi bi-arrow-right-circle-fill me-1"></i>View pending list</div>
+                <div class="mt-2" style="font-size: 0.72rem; color: #DD6B20; font-weight: 600;">
+                    <i class="bi bi-arrow-right-circle-fill me-1"></i>View pending list
+                </div>
             </div>
         </a>
     </div>
-    <div class="col-sm-6 col-lg-3">
+    <div class="col-sm-6 col-lg-3 animate-in">
         <a href="@Url.Action("PendingReport", "Payments")" class="text-decoration-none h-100 d-block card-hover-effect">
-            <div class="stat-card shadow h-100" style="border-left: 6px solid #dc3545; background-color: #fffafb;">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="stat-card h-100" style="border-left: 5px solid #E53E3E; background: linear-gradient(135deg, #FFF5F5 0%, #fff 100%);">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <div class="stat-label text-danger fw-bold" style="font-size: 0.8rem;">Pending Fees (Amount)</div>
-                        <div class="stat-value text-danger" style="font-size: 1.5rem; font-weight: 800;">₹@Model.Metrics.TotalPendingFeesAmount.ToString("N0")</div>
+                        <div class="stat-label" style="color: #E53E3E;">Pending Amount</div>
+                        <div class="stat-value" style="color: #C53030; font-size: 1.5rem;">₹@Model.Metrics.TotalPendingFeesAmount.ToString("N0")</div>
                     </div>
-                    <div class="stat-icon text-danger" style="font-size: 1.8rem;">
+                    <div class="stat-icon" style="color: #E53E3E;">
                         <i class="bi bi-currency-rupee"></i>
                     </div>
                 </div>
-                <div class="text-danger-emphasis fw-medium fs-8 mt-2"><i class="bi bi-arrow-right-circle-fill me-1"></i>View pending list</div>
+                <div class="mt-2" style="font-size: 0.72rem; color: #E53E3E; font-weight: 600;">
+                    <i class="bi bi-arrow-right-circle-fill me-1"></i>View pending list
+                </div>
             </div>
         </a>
     </div>
 </div>
 
+<!-- Detail Section -->
 <div class="row g-4">
     <!-- Class Student Distribution -->
-    <div class="col-lg-8">
+    <div class="col-lg-8 animate-in">
         <div class="content-card h-100">
             <div class="card-header-crimson">
-                <h5>Student Distribution by Class</h5>
+                <h5><i class="bi bi-bar-chart-fill text-primary me-1" style="font-size: 0.9rem;"></i> Student Distribution by Class</h5>
             </div>
             <div class="card-body-custom">
                 @if (Model.ClassDistribution.Any())
@@ -166,7 +179,7 @@
                                 <tr>
                                     <th>Class Name</th>
                                     <th>Capacity Usage</th>
-                                    <th class="text-end" style="width: 150px;">Student Count / Max</th>
+                                    <th class="text-end" style="width: 160px;">Count / Max</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -177,13 +190,14 @@
                                     <tr>
                                         <td class="fw-semibold">@item.ClassName</td>
                                         <td>
-                                            <div class="progress" style="height: 10px; border-radius: 5px;">
+                                            <div class="progress" style="height: 8px;">
                                                 <div class="progress-bar @barColorClass" role="progressbar" style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </td>
-                                        <td class="text-end fw-medium">
-                                            @item.StudentCount <span class="text-muted">/ @item.MaxCapacity</span>
-                                            <span class="ms-1 fs-8 text-muted">(@percent.ToString("0.0")%)</span>
+                                        <td class="text-end">
+                                            <span class="fw-bold">@item.StudentCount</span>
+                                            <span class="text-muted"> / @item.MaxCapacity</span>
+                                            <span class="ms-1" style="font-size: 0.72rem; color: var(--text-light);">(@percent.ToString("0.0")%)</span>
                                         </td>
                                     </tr>
                                 }
@@ -193,21 +207,21 @@
                 }
                 else
                 {
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-2"></i>
-                        <p class="mt-2">No class distribution records available for this Academic Year.</p>
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>No class distribution records available for this Academic Year.</p>
                     </div>
                 }
             </div>
         </div>
     </div>
 
-    <!-- Right Sidebar Column -->
+    <!-- Right Sidebar -->
     <div class="col-lg-4">
         <!-- Gender Distribution -->
-        <div class="content-card mb-4">
+        <div class="content-card mb-4 animate-in">
             <div class="card-header-crimson">
-                <h5>Gender Distribution</h5>
+                <h5><i class="bi bi-gender-ambiguous text-info me-1" style="font-size: 0.9rem;"></i> Gender Distribution</h5>
             </div>
             <div class="card-body-custom">
                 @if (Model.GenderDistribution.Any())
@@ -216,15 +230,21 @@
                     @foreach (var gender in Model.GenderDistribution)
                     {
                         var genderPercent = totalGenderCount > 0 ? (double)gender.StudentCount / totalGenderCount * 100 : 0;
-                        var colorClass = gender.Gender == "Male" ? "bg-primary" : gender.Gender == "Female" ? "bg-danger" : "bg-warning";
-                        var icon = gender.Gender == "Male" ? "bi-gender-male" : gender.Gender == "Female" ? "bi-gender-female" : "bi-gender-ambiguous";
-                        
+                        var colorClass = gender.Gender == "Male" ? "bg-info" : gender.Gender == "Female" ? "bg-danger" : "bg-warning";
+                        var iconClass = gender.Gender == "Male" ? "bi-gender-male" : gender.Gender == "Female" ? "bi-gender-female" : "bi-gender-ambiguous";
+                        var labelColor = gender.Gender == "Male" ? "#3182CE" : gender.Gender == "Female" ? "#D53F8C" : "#D69E2E";
+
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-semibold"><i class="bi @icon me-2 text-muted"></i>@gender.Gender</span>
-                                <span class="fw-medium text-dark">@gender.StudentCount (@genderPercent.ToString("0.0")%)</span>
+                                <span class="fw-semibold" style="font-size: 0.88rem;">
+                                    <i class="bi @iconClass me-2" style="color: @labelColor;"></i>@gender.Gender
+                                </span>
+                                <span class="fw-bold" style="font-size: 0.85rem; color: var(--text-dark);">
+                                    @gender.StudentCount
+                                    <span style="font-size: 0.72rem; color: var(--text-light);">(@genderPercent.ToString("0.0")%)</span>
+                                </span>
                             </div>
-                            <div class="progress" style="height: 8px; border-radius: 4px;">
+                            <div class="progress" style="height: 6px;">
                                 <div class="progress-bar @colorClass" role="progressbar" style="width: @genderPercent%;" aria-valuenow="@genderPercent" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
@@ -232,24 +252,24 @@
                 }
                 else
                 {
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-people fs-2"></i>
-                        <p class="mt-2">No gender metrics found.</p>
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <i class="bi bi-people"></i>
+                        <p>No gender metrics found.</p>
                     </div>
                 }
             </div>
         </div>
 
         <!-- Division Distribution -->
-        <div class="content-card mb-4">
+        <div class="content-card mb-4 animate-in">
             <div class="card-header-crimson">
-                <h5>Division Distribution</h5>
+                <h5><i class="bi bi-grid-3x3-gap text-warning me-1" style="font-size: 0.9rem;"></i> Division Distribution</h5>
             </div>
-            <div class="card-body-custom">
+            <div class="card-body-custom" style="padding: 0;">
                 @if (Model.DivisionDistribution.Any())
                 {
                     <div class="table-responsive">
-                        <table class="table table-custom">
+                        <table class="table table-custom mb-0">
                             <thead>
                                 <tr>
                                     <th>Division</th>
@@ -261,7 +281,9 @@
                                 {
                                     <tr>
                                         <td class="fw-semibold">Division @div.DivisionName</td>
-                                        <td class="text-end fw-semibold text-primary">@div.StudentCount</td>
+                                        <td class="text-end">
+                                            <span class="badge rounded-pill px-3" style="background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.8rem;">@div.StudentCount</span>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -270,18 +292,18 @@
                 }
                 else
                 {
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-columns fs-2"></i>
-                        <p class="mt-2">No division records available.</p>
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <i class="bi bi-columns"></i>
+                        <p>No division records available.</p>
                     </div>
                 }
             </div>
         </div>
 
         <!-- Staff Role Distribution -->
-        <div class="content-card">
+        <div class="content-card animate-in">
             <div class="card-header-crimson">
-                <h5>Staff Role Distribution</h5>
+                <h5><i class="bi bi-person-workspace text-success me-1" style="font-size: 0.9rem;"></i> Staff Roles</h5>
             </div>
             <div class="card-body-custom">
                 @if (Model.StaffDistribution.Any())
@@ -292,10 +314,15 @@
                         var staffPercent = totalStaffCount > 0 ? (double)staff.StaffCount / totalStaffCount * 100 : 0;
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-semibold"><i class="bi bi-person-workspace me-2 text-muted"></i>@staff.StaffType</span>
-                                <span class="fw-medium text-dark">@staff.StaffCount (@staffPercent.ToString("0.0")%)</span>
+                                <span class="fw-semibold" style="font-size: 0.88rem;">
+                                    <i class="bi bi-person-workspace me-2" style="color: var(--text-light);"></i>@staff.StaffType
+                                </span>
+                                <span class="fw-bold" style="font-size: 0.85rem; color: var(--text-dark);">
+                                    @staff.StaffCount
+                                    <span style="font-size: 0.72rem; color: var(--text-light);">(@staffPercent.ToString("0.0")%)</span>
+                                </span>
                             </div>
-                            <div class="progress" style="height: 8px; border-radius: 4px;">
+                            <div class="progress" style="height: 6px;">
                                 <div class="progress-bar bg-info" role="progressbar" style="width: @staffPercent%;" aria-valuenow="@staffPercent" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
@@ -303,9 +330,9 @@
                 }
                 else
                 {
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-person-badge fs-2"></i>
-                        <p class="mt-2">No staff records available.</p>
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <i class="bi bi-person-badge"></i>
+                        <p>No staff records available.</p>
                     </div>
                 }
             </div>

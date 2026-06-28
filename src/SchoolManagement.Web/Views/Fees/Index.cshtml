@@ -6,9 +6,9 @@
 <div class="row">
     <!-- Fee List -->
     <div class="col-md-7">
-        <div class="content-card">
+        <div class="content-card animate-in">
             <div class="card-header-crimson">
-                <h5>Fee Amount Structures</h5>
+                <h5><i class="bi bi-wallet2 me-1" style="font-size: 0.85rem; color: var(--primary);"></i>Fee Amount Structures</h5>
                 <a asp-action="Mappings" class="btn btn-sm btn-outline-light"><i class="bi bi-link-45deg me-1"></i> Class Fee Mappings</a>
             </div>
             <div class="card-body-custom p-0">
@@ -20,6 +20,7 @@
                                 <th>Fee Amount (₹)</th>
                                 <th>Configured Date</th>
                                 <th>Status</th>
+                                <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -27,7 +28,7 @@
                             {
                                 <tr>
                                     <td>#@item.FeeID</td>
-                                    <td class="fw-bold text-primary">₹ @item.Fee.ToString("N2")</td>
+                                    <td class="fw-bold" style="color: var(--primary);">₹ @item.Fee.ToString("N2")</td>
                                     <td>@item.CreatedDate.ToString("dd-MM-yyyy")</td>
                                     <td>
                                         @if (item.IsActive)
@@ -38,6 +39,9 @@
                                         {
                                             <span class="badge-inactive">Inactive</span>
                                         }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-action="EditFeeMaster" asp-route-id="@item.FeeID" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-fill"></i> Edit</a>
                                     </td>
                                 </tr>
                             }

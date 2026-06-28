@@ -19,7 +19,7 @@ namespace SchoolManagement.Domain.Entities
 
         // Personal Information
         public string? PlaceOfBirth { get; set; }
-        public string? Nationality { get; set; } = "Indian";
+        public string? Nationality { get; set; }
         public string? BloodGroup { get; set; }
         public string? Category { get; set; }
         public string? Religion { get; set; }
@@ -30,7 +30,7 @@ namespace SchoolManagement.Domain.Entities
         public string? AddressLine2 { get; set; }
         public string? City { get; set; }
         public string? State { get; set; }
-        public string? Country { get; set; } = "India";
+        public string? Country { get; set; }
         public string? PinCode { get; set; }
 
         // Parent Information
@@ -44,6 +44,8 @@ namespace SchoolManagement.Domain.Entities
         // Guardian Information
         public string? GuardianName { get; set; }
         public string? GuardianMobileNumber { get; set; }
+        public string? Guardian2Name { get; set; }
+        public string? Guardian2MobileNumber { get; set; }
         public string? EmergencyContactNumber { get; set; }
 
         // Academic Information

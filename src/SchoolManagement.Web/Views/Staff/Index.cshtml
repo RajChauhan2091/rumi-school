@@ -3,10 +3,10 @@
     ViewData["Title"] = "Staff Management";
 }
 
-<div class="content-card">
+<div class="content-card animate-in">
     <div class="card-header-crimson">
-        <h5>Staff Profile Directory</h5>
-        <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Staff Profile</a>
+        <h5><i class="bi bi-person-badge-fill me-1" style="font-size: 0.85rem; color: var(--primary);"></i> Staff Directory</h5>
+        <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Staff</a>
     </div>
     <div class="card-body-custom p-0">
         <div class="table-responsive">
@@ -34,12 +34,12 @@
                                 }
                                 else
                                 {
-                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; font-weight: bold;">
+                                    <div class="student-avatar-img d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: #fff; font-weight: 700; font-size: 0.75rem; border: none;">
                                         @item.StaffFirstName.Substring(0, Math.Min(1, item.StaffFirstName.Length))@item.StaffLastName.Substring(0, Math.Min(1, item.StaffLastName.Length))
                                     </div>
                                 }
                             </td>
-                            <td class="fw-semibold text-primary">@item.StaffFullName</td>
+                            <td class="fw-semibold" style="color: var(--primary);">@item.StaffFullName</td>
                             <td>@item.StaffTypeName</td>
                             <td>@item.Mobileno</td>
                             <td>@item.AadhaarNo</td>

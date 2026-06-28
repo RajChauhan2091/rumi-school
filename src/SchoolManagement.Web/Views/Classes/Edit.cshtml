@@ -20,6 +20,13 @@
                         <span asp-validation-for="ClassName" class="text-danger"></span>
                     </div>
 
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" type="checkbox" class="form-check-input" id="classActiveSwitch" />
+                            <label class="form-check-label" for="classActiveSwitch">Is Active</label>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2">
                         <a asp-action="Index" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">Save Changes</button>

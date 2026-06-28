@@ -7,43 +7,58 @@
 <div class="login-body">
     <div class="login-card">
         <div class="login-logo">
-            <h2><i class="bi bi-mortarboard-fill me-2 text-danger"></i>RUMI</h2>
-            <p>Roshni-Education-Trust</p>
+            <div style="margin-bottom: 1.5rem;">
+                <img src="~/images/rumi_logo.png" alt="Rumi Nursery School Logo" style="max-width: 260px; height: auto; object-fit: contain;" />
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0;">Management Portal</p>
         </div>
 
         <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div asp-validation-summary="ModelOnly" class="validation-summary-errors" style="display: none;"></div>
 
             <div class="mb-3">
                 <label asp-for="Username" class="form-label">Username</label>
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-person-fill text-muted"></i></span>
-                    <input asp-for="Username" class="form-control border-start-0" placeholder="Enter username" autocomplete="username" />
+                    <input asp-for="Username" class="form-control border-start-0" placeholder="Enter username" autocomplete="username" style="background: #fff;" />
                 </div>
-                <span asp-validation-for="Username" class="text-danger"></span>
+                <span asp-validation-for="Username" class="field-validation-error"></span>
             </div>
 
             <div class="mb-4">
                 <label asp-for="Password" class="form-label">Password</label>
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-lock-fill text-muted"></i></span>
-                    <input asp-for="Password" class="form-control border-start-0" placeholder="Enter password" />
+                    <input asp-for="Password" class="form-control border-start-0" placeholder="Enter password" style="background: #fff;" />
                 </div>
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <span asp-validation-for="Password" class="field-validation-error"></span>
             </div>
 
-            <div class="mb-4 form-check d-flex justify-content-between">
+            <div class="mb-4 form-check d-flex justify-content-between align-items-center">
                 <div>
                     <input asp-for="RememberMe" class="form-check-input" />
-                    <label asp-for="RememberMe" class="form-check-label text-muted">Remember Me</label>
+                    <label asp-for="RememberMe" class="form-check-label text-muted" style="font-size: 0.85rem;">Remember Me</label>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 fs-5">Log In</button>
+            <button type="submit" class="btn btn-primary w-100 py-2">Log In</button>
+
+            <div class="text-center mt-3">
+                <small class="text-muted" style="font-size: 0.75rem;">Rumi Nursery School &copy; @DateTime.Now.Year</small>
+            </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Show validation summary only if there are errors
+        $(document).ready(function() {
+            var summary = $('.validation-summary-errors');
+            if (summary.find('li').length > 0) {
+                summary.show();
+            }
+        });
+    </script>
 }

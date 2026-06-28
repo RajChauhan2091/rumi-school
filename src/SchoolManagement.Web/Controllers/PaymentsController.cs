@@ -176,13 +176,16 @@ namespace SchoolManagement.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Collect(PaymentDetail model, IFormFile? transactionPhotoFile)
         {
-            if (transactionPhotoFile != null && transactionPhotoFile.Length > 0)
+            if (transactionPhotoFile == null || transactionPhotoFile.Length == 0)
             {
-                using (var ms = new MemoryStream())
-                {
-                    await transactionPhotoFile.CopyToAsync(ms);
-                    model.Transactionphoto = Convert.ToBase64String(ms.ToArray());
-                }
+                TempData["ErrorMessage"] = "Receipt or Screenshot photo upload is required for all modes of payment.";
+                return RedirectToAction(nameof(Collect), new { studentId = model.StudentID });
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                await transactionPhotoFile.CopyToAsync(ms);
+                model.Transactionphoto = Convert.ToBase64String(ms.ToArray());
             }
 
             // Server-side balance calculation & IsFullyPaid check
@@ -219,6 +222,94 @@ namespace SchoolManagement.Web.Controllers
 
             TempData["ErrorMessage"] = result.Message;
             return RedirectToAction(nameof(Collect), new { studentId = model.StudentID });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var item = await _paymentService.GetPaymentByIdAsync(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            return View(item);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var viewItem = await _paymentService.GetPaymentByIdAsync(id);
+            if (viewItem == null)
+            {
+                return NotFound();
+            }
+
+            var model = new PaymentDetail
+            {
+                PaymentDetailID = viewItem.PaymentDetailID,
+                StudentID = viewItem.StudentID,
+                FinancialYearID = viewItem.FinancialYearID,
+                FeeID = viewItem.FeeID,
+                PaymentMode = viewItem.PaymentMode,
+                TransactionRef = viewItem.TransactionRef,
+                Transactionphoto = viewItem.Transactionphoto,
+                IsFullyPaid = viewItem.IsFullyPaid,
+                SemesterID = viewItem.SemesterID,
+                FeePaid = viewItem.FeePaid,
+                TotalInstallment = viewItem.TotalInstallment,
+                Remarks = viewItem.Remarks
+            };
+
+            var studentList = await _studentService.GetByIdAsync(model.StudentID);
+            ViewBag.Student = studentList.FirstOrDefault();
+            
+            var feeStructures = await _paymentService.GetAvailableFeesForClassAsync(ViewBag.Student?.ClassId ?? 0, model.FinancialYearID);
+            ViewBag.FeeStructures = new SelectList(feeStructures, "FeeID", "SemesterName", model.FeeID);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, PaymentDetail model, IFormFile? transactionPhotoFile)
+        {
+            if (id != model.PaymentDetailID)
+            {
+                return BadRequest();
+            }
+
+            if (transactionPhotoFile != null && transactionPhotoFile.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await transactionPhotoFile.CopyToAsync(ms);
+                    model.Transactionphoto = Convert.ToBase64String(ms.ToArray());
+                }
+            }
+            else
+            {
+                var existing = await _paymentService.GetPaymentByIdAsync(id);
+                if (existing != null)
+                {
+                    model.Transactionphoto = existing.Transactionphoto;
+                }
+            }
+
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
+            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+            var result = await _paymentService.SavePaymentAsync(model, performedBy, ipAddress);
+            if (result.StatusCode == 200)
+            {
+                TempData["SuccessMessage"] = "Payment record updated successfully.";
+                return RedirectToAction(nameof(StudentLedger), new { studentId = model.StudentID });
+            }
+
+            TempData["ErrorMessage"] = result.Message;
+            return RedirectToAction(nameof(Edit), new { id = model.PaymentDetailID });
         }
 
         // POST: /Payments/Delete/5

@@ -36,11 +36,20 @@ namespace SchoolManagement.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<StudentPaymentsView?> GetPaymentByIdAsync(int paymentDetailId)
+        {
+            var result = await _context.StudentPaymentsView
+                .FromSqlRaw("SELECT * FROM vw_StudentPayments WHERE PaymentDetailID = @PaymentDetailId",
+                    new SqlParameter("@PaymentDetailId", paymentDetailId))
+                .ToListAsync();
+            return result.FirstOrDefault();
+        }
+
         public async Task<DbOperationResult> SavePaymentAsync(PaymentDetail entity, int performedBy, string ipAddress)
         {
             var result = await _context.DbOperationResults
                 .FromSqlRaw(
-                    "EXEC usp_PaymentDetail_Save @PaymentDetailId, @StudentId, @FinancialYearId, @FeeId, @PaymentMode, @TransactionRef, @Transactionphoto, @IsFullyPaid, @SemesterId, @FeePaid, @TotalInstallment, @PerformedBy, @IPAddress",
+                    "EXEC usp_PaymentDetail_Save @PaymentDetailId, @StudentId, @FinancialYearId, @FeeId, @PaymentMode, @TransactionRef, @Transactionphoto, @IsFullyPaid, @SemesterId, @FeePaid, @TotalInstallment, @Remarks, @PerformedBy, @IPAddress",
                     new SqlParameter("@PaymentDetailId", entity.PaymentDetailID),
                     new SqlParameter("@StudentId", entity.StudentID),
                     new SqlParameter("@FinancialYearId", entity.FinancialYearID),
@@ -52,6 +61,7 @@ namespace SchoolManagement.Infrastructure.Repositories
                     new SqlParameter("@SemesterId", entity.SemesterID),
                     new SqlParameter("@FeePaid", entity.FeePaid),
                     new SqlParameter("@TotalInstallment", entity.TotalInstallment),
+                    new SqlParameter("@Remarks", entity.Remarks ?? (object)DBNull.Value),
                     new SqlParameter("@PerformedBy", performedBy),
                     new SqlParameter("@IPAddress", ipAddress ?? (object)DBNull.Value)
                 )

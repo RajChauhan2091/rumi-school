@@ -5,9 +5,9 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-10">
-        <div class="content-card">
+        <div class="content-card animate-in">
             <div class="card-header-crimson">
-                <h5>Add New Staff Profile</h5>
+                <h5><i class="bi bi-person-plus-fill me-1" style="font-size: 0.85rem; color: var(--primary);"></i> Add New Staff Profile</h5>
             </div>
             <div class="card-body-custom">
                 <form asp-action="Create" method="post" enctype="multipart/form-data">
@@ -64,26 +64,33 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Address" class="form-label fw-medium">Residential Address</label>
-                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Full Address"></textarea>
-                        <span asp-validation-for="Address" class="text-danger"></span>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="AddressLine1" class="form-label fw-medium">Address Line 1</label>
+                            <input asp-for="AddressLine1" class="form-control" placeholder="House No, Street, Landmark" />
+                            <span asp-validation-for="AddressLine1" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="AddressLine2" class="form-label fw-medium">Address Line 2 (Optional)</label>
+                            <input asp-for="AddressLine2" class="form-control" placeholder="Locality, Area" />
+                            <span asp-validation-for="AddressLine2" class="text-danger"></span>
+                        </div>
                     </div>
 
-                    <h6 class="border-bottom pb-2 mb-3 text-secondary text-uppercase fs-7 fw-bold mt-4" style="letter-spacing: 0.5px;">Verification & Financials</h6>
+                    <h6 class="border-bottom pb-2 mb-3 text-secondary text-uppercase fs-7 fw-bold mt-4" style="letter-spacing: 0.5px;">Verification & Financials (Optional)</h6>
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label asp-for="AadhaarNo" class="form-label fw-medium">Aadhaar Number (12 digits)</label>
-                            <input asp-for="AadhaarNo" class="form-control" maxlength="12" placeholder="Aadhaar No" />
+                            <label asp-for="AadhaarNo" class="form-label fw-medium">Aadhaar Number (Optional)</label>
+                            <input asp-for="AadhaarNo" class="form-control" maxlength="14" placeholder="1234-5678-9012" id="staffAadhaarInput" />
                             <span asp-validation-for="AadhaarNo" class="text-danger"></span>
                         </div>
                         <div class="col-md-4">
-                            <label asp-for="PanNo" class="form-label fw-medium">PAN Card Number</label>
+                            <label asp-for="PanNo" class="form-label fw-medium">PAN Card Number (Optional)</label>
                             <input asp-for="PanNo" class="form-control" placeholder="PAN No" />
                             <span asp-validation-for="PanNo" class="text-danger"></span>
                         </div>
                         <div class="col-md-4">
-                            <label asp-for="BankName" class="form-label fw-medium">Bank Name</label>
+                            <label asp-for="BankName" class="form-label fw-medium">Bank Name (Optional)</label>
                             <input asp-for="BankName" class="form-control" placeholder="Bank Name" />
                             <span asp-validation-for="BankName" class="text-danger"></span>
                         </div>
@@ -91,12 +98,12 @@
 
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <label asp-for="AccountNo" class="form-label fw-medium">Bank Account Number</label>
+                            <label asp-for="AccountNo" class="form-label fw-medium">Bank Account Number (Optional)</label>
                             <input asp-for="AccountNo" class="form-control" placeholder="Account No" />
                             <span asp-validation-for="AccountNo" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="IFSCCode" class="form-label fw-medium">Bank IFSC Code</label>
+                            <label asp-for="IFSCCode" class="form-label fw-medium">Bank IFSC Code (Optional)</label>
                             <input asp-for="IFSCCode" class="form-control" placeholder="IFSC Code" />
                             <span asp-validation-for="IFSCCode" class="text-danger"></span>
                         </div>
@@ -114,4 +121,25 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const aadhaarInput = document.getElementById('staffAadhaarInput');
+            if (aadhaarInput) {
+                aadhaarInput.addEventListener('input', function (e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 12) {
+                        value = value.slice(0, 12);
+                    }
+                    let formatted = '';
+                    for (let i = 0; i < value.length; i++) {
+                        if (i > 0 && i % 4 === 0) {
+                            formatted += '-';
+                        }
+                        formatted += value[i];
+                    }
+                    e.target.value = formatted;
+                });
+            }
+        });
+    </script>
 }

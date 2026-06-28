@@ -121,6 +121,8 @@ SELECT
     s.MotherMobileNumber,
     s.GuardianName,
     s.GuardianMobileNumber,
+    s.Guardian2Name,
+    s.Guardian2MobileNumber,
     s.EmergencyContactNumber,
     s.PreviousSchoolName,
     s.AdmissionFinancialYearId,
@@ -718,6 +720,7 @@ GO
 CREATE PROCEDURE usp_Class_Save
     @ClassId INT,
     @ClassName VARCHAR(50),
+    @IsActive BIT = 1,
     @PerformedBy INT,
     @IPAddress VARCHAR(50) = NULL
 AS
@@ -744,8 +747,8 @@ BEGIN
         BEGIN
             SET @OperationType = 'INSERT';
 
-            INSERT INTO ClassMaster (ClassName, CreatedBy)
-            VALUES (@ClassName, @PerformedBy);
+            INSERT INTO ClassMaster (ClassName, IsActive, CreatedBy)
+            VALUES (@ClassName, @IsActive, @PerformedBy);
 
             SET @ClassId = SCOPE_IDENTITY();
         END
@@ -764,6 +767,7 @@ BEGIN
 
             UPDATE ClassMaster
             SET ClassName = @ClassName,
+                IsActive = @IsActive,
                 UpdatedDate = SYSUTCDATETIME(),
                 UpdatedBy = @PerformedBy
             WHERE ClassId = @ClassId;
@@ -1124,6 +1128,8 @@ BEGIN
         MotherMobileNumber,
         GuardianName,
         GuardianMobileNumber,
+        Guardian2Name,
+        Guardian2MobileNumber,
         EmergencyContactNumber,
         PreviousSchoolName,
         AdmissionFinancialYearId,
@@ -1173,7 +1179,7 @@ GO
 
 CREATE PROCEDURE usp_Student_Save
     @StudentId INT,
-    @GrNo VARCHAR(20),
+    @GrNo VARCHAR(20) = NULL,
     @AdmissionDate DATE,
     @FirstName VARCHAR(50),
     @MiddleName VARCHAR(50) = NULL,
@@ -1183,17 +1189,17 @@ CREATE PROCEDURE usp_Student_Save
     @StudentPhoto VARBINARY(MAX) = NULL,
     
     @PlaceOfBirth VARCHAR(100) = NULL,
-    @Nationality VARCHAR(50) = 'Indian',
+    @Nationality VARCHAR(50) = NULL,
     @BloodGroup VARCHAR(5) = NULL,
     @Category VARCHAR(30) = NULL,
     @Religion VARCHAR(50) = NULL,
-    @AadhaarNumber VARCHAR(12) = NULL,
+    @AadhaarNumber VARCHAR(15) = NULL,
     
     @AddressLine1 VARCHAR(150),
     @AddressLine2 VARCHAR(150) = NULL,
     @City VARCHAR(50),
-    @State VARCHAR(50),
-    @Country VARCHAR(50) = 'India',
+    @State VARCHAR(50) = NULL,
+    @Country VARCHAR(50) = NULL,
     @PinCode VARCHAR(10),
     
     @FatherName VARCHAR(100),
@@ -1204,6 +1210,8 @@ CREATE PROCEDURE usp_Student_Save
     @MotherMobileNumber VARCHAR(15) = NULL,
     @GuardianName VARCHAR(100) = NULL,
     @GuardianMobileNumber VARCHAR(15) = NULL,
+    @Guardian2Name VARCHAR(100) = NULL,
+    @Guardian2MobileNumber VARCHAR(15) = NULL,
     @EmergencyContactNumber VARCHAR(15),
     
     @PreviousSchoolName VARCHAR(150) = NULL,
@@ -1331,7 +1339,7 @@ BEGIN
             SET @OperationType = 'INSERT';
 
             -- Check for duplicate GR Number
-            IF EXISTS (SELECT 1 FROM StudentInfo WHERE GrNo = @GrNo AND IsDeleted = 0)
+            IF @GrNo IS NOT NULL AND EXISTS (SELECT 1 FROM StudentInfo WHERE GrNo = @GrNo AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 400;
@@ -1345,7 +1353,7 @@ BEGIN
                 PlaceOfBirth, Nationality, BloodGroup, Category, Religion, AadhaarNumber,
                 AddressLine1, AddressLine2, City, State, Country, PinCode,
                 FatherName, FatherOccupation, FatherMobileNumber, MotherName, MotherOccupation, MotherMobileNumber,
-                GuardianName, GuardianMobileNumber, EmergencyContactNumber,
+                GuardianName, GuardianMobileNumber, Guardian2Name, Guardian2MobileNumber, EmergencyContactNumber,
                 PreviousSchoolName, AdmissionFinancialYearId, EmailAddress, CreatedBy
             )
             VALUES (
@@ -1353,7 +1361,7 @@ BEGIN
                 @PlaceOfBirth, @Nationality, @BloodGroup, @Category, @Religion, @AadhaarNumber,
                 @AddressLine1, @AddressLine2, @City, @State, @Country, @PinCode,
                 @FatherName, @FatherOccupation, @FatherMobileNumber, @MotherName, @MotherOccupation, @MotherMobileNumber,
-                @GuardianName, @GuardianMobileNumber, @EmergencyContactNumber,
+                @GuardianName, @GuardianMobileNumber, @Guardian2Name, @Guardian2MobileNumber, @EmergencyContactNumber,
                 @PreviousSchoolName, @AdmissionFinancialYearId, @EmailAddress, @PerformedBy
             );
 
@@ -1401,6 +1409,8 @@ BEGIN
                 MotherMobileNumber = @MotherMobileNumber,
                 GuardianName = @GuardianName,
                 GuardianMobileNumber = @GuardianMobileNumber,
+                Guardian2Name = @Guardian2Name,
+                Guardian2MobileNumber = @Guardian2MobileNumber,
                 EmergencyContactNumber = @EmergencyContactNumber,
                 PreviousSchoolName = @PreviousSchoolName,
                 AdmissionFinancialYearId = @AdmissionFinancialYearId,
@@ -1647,7 +1657,9 @@ SELECT
     st.StaffType AS StaffTypeName,
     s.Mobileno,
     s.EmergencyContact,
-    s.Address,
+    s.AddressLine1,
+    s.AddressLine2,
+    (s.AddressLine1 + ISNULL(', ' + s.AddressLine2, '')) AS Address,
     s.AadhaarNo,
     s.BankName,
     s.IFSCCode,
@@ -1712,6 +1724,7 @@ SELECT
     pd.IsFullyPaid,
     pd.FeePaid,
     pd.TotalInstallment,
+    pd.Remarks,
     pd.CreatedDate,
     pd.CreatedBy,
     (fm.Fee - ISNULL((
@@ -1880,12 +1893,13 @@ CREATE PROCEDURE usp_StaffDetail_Save
     @StaffType INT,
     @Mobileno VARCHAR(15),
     @EmergencyContact VARCHAR(15),
-    @Address NVARCHAR(255),
-    @AadhaarNo VARCHAR(12),
-    @BankName NVARCHAR(50),
-    @IFSCCode NVARCHAR(20),
-    @AccountNo NVARCHAR(20),
-    @PanNo NVARCHAR(20),
+    @AddressLine1 NVARCHAR(150),
+    @AddressLine2 NVARCHAR(150) = NULL,
+    @AadhaarNo VARCHAR(15) = NULL,
+    @BankName NVARCHAR(50) = NULL,
+    @IFSCCode NVARCHAR(20) = NULL,
+    @AccountNo NVARCHAR(20) = NULL,
+    @PanNo NVARCHAR(20) = NULL,
     @StaffPic NVARCHAR(MAX) = NULL,
     @DOB DATE,
     @IsActive BIT = 1,
@@ -1901,17 +1915,17 @@ BEGIN
     DECLARE @NewValues NVARCHAR(MAX);
 
     BEGIN TRY
-        -- Validate Aadhaar Number length
-        IF LEN(ISNULL(@AadhaarNo, '')) <> 12
+        -- Validate Aadhaar Number length (either 12 raw digits or 14 formatted digits) if provided
+        IF ISNULL(@AadhaarNo, '') <> '' AND LEN(@AadhaarNo) NOT IN (12, 14)
         BEGIN
             SET @StatusCode = 400;
-            SET @Message = 'Aadhaar Number must be exactly 12 digits.';
+            SET @Message = 'Aadhaar Number must be 12 digits (or 14 characters with formatting).';
             SELECT @StatusCode AS StatusCode, @Message AS Message;
             RETURN;
         END
 
-        -- Validate Aadhaar uniqueness
-        IF EXISTS (SELECT 1 FROM StaffDetail WHERE AadhaarNo = @AadhaarNo AND StaffID <> @StaffId AND IsDeleted = 0)
+        -- Validate Aadhaar uniqueness if provided
+        IF ISNULL(@AadhaarNo, '') <> '' AND EXISTS (SELECT 1 FROM StaffDetail WHERE AadhaarNo = @AadhaarNo AND StaffID <> @StaffId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'A staff member with this Aadhaar Number already exists.';
@@ -1936,12 +1950,12 @@ BEGIN
             SET @OpType = 'INSERT';
             INSERT INTO StaffDetail (
                 StaffFirstName, StaffMiddleName, StaffLastName, StaffType, Mobileno,
-                EmergencyContact, Address, AadhaarNo, BankName, IFSCCode, AccountNo,
+                EmergencyContact, AddressLine1, AddressLine2, AadhaarNo, BankName, IFSCCode, AccountNo,
                 PanNo, StaffPic, DOB, IsActive, CreatedBy
             )
             VALUES (
                 @StaffFirstName, @StaffMiddleName, @StaffLastName, @StaffType, @Mobileno,
-                @EmergencyContact, @Address, @AadhaarNo, @BankName, @IFSCCode, @AccountNo,
+                @EmergencyContact, @AddressLine1, @AddressLine2, @AadhaarNo, @BankName, @IFSCCode, @AccountNo,
                 @PanNo, @StaffPic, @DOB, @IsActive, @PerformedBy
             );
             
@@ -1970,7 +1984,8 @@ BEGIN
                 StaffType = @StaffType,
                 Mobileno = @Mobileno,
                 EmergencyContact = @EmergencyContact,
-                Address = @Address,
+                AddressLine1 = @AddressLine1,
+                AddressLine2 = @AddressLine2,
                 AadhaarNo = @AadhaarNo,
                 BankName = @BankName,
                 IFSCCode = @IFSCCode,
@@ -2438,6 +2453,7 @@ CREATE PROCEDURE usp_PaymentDetail_Save
     @SemesterId INT,
     @FeePaid DECIMAL(18,2),
     @TotalInstallment INT,
+    @Remarks NVARCHAR(250) = NULL,
     @PerformedBy INT,
     @IPAddress VARCHAR(50) = NULL
 AS
@@ -2507,11 +2523,11 @@ BEGIN
             SET @OpType = 'INSERT';
             INSERT INTO PaymentDetail (
                 StudentID, FinancialYearID, FeeID, PaymentMode, TransactionRef,
-                Transactionphoto, IsFullyPaid, SemesterID, FeePaid, TotalInstallment, CreatedBy
+                Transactionphoto, IsFullyPaid, SemesterID, FeePaid, TotalInstallment, Remarks, CreatedBy
             )
             VALUES (
                 @StudentId, @FinancialYearId, @FeeId, @PaymentMode, @TransactionRef,
-                @Transactionphoto, @IsFullyPaid, @SemesterId, @FeePaid, @TotalInstallment, @PerformedBy
+                @Transactionphoto, @IsFullyPaid, @SemesterId, @FeePaid, @TotalInstallment, @Remarks, @PerformedBy
             );
             SET @PaymentDetailId = SCOPE_IDENTITY();
         END
@@ -2540,6 +2556,7 @@ BEGIN
                 SemesterID = @SemesterId,
                 FeePaid = @FeePaid,
                 TotalInstallment = @TotalInstallment,
+                Remarks = @Remarks,
                 UpdatedDate = SYSUTCDATETIME(),
                 UpdatedBy = @PerformedBy
             WHERE PaymentDetailID = @PaymentDetailId;

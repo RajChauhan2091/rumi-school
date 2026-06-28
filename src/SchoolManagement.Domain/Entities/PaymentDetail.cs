@@ -15,6 +15,7 @@ namespace SchoolManagement.Domain.Entities
         public int SemesterID { get; set; }
         public decimal FeePaid { get; set; }
         public int TotalInstallment { get; set; }
+        public string? Remarks { get; set; }
 
         public virtual StudentInfo? StudentInfo { get; set; }
         public virtual FinancialYear? FinancialYear { get; set; }

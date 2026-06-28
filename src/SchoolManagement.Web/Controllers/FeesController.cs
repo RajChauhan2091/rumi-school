@@ -127,6 +127,104 @@ namespace SchoolManagement.Web.Controllers
             return RedirectToAction(nameof(Mappings));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> EditFeeMaster(int id)
+        {
+            var item = await _feeService.GetFeeMasterByIdAsync(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            return View(item);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditFeeMaster(int id, FeeMaster model)
+        {
+            if (id != model.FeeID)
+            {
+                return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
+            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+            var result = await _feeService.SaveFeeMasterAsync(model, performedBy, ipAddress);
+            if (result.StatusCode == 200)
+            {
+                TempData["SuccessMessage"] = "Fee configuration updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditMapping(int id)
+        {
+            var viewItem = await _feeService.GetFeeDetailByIdAsync(id);
+            if (viewItem == null)
+            {
+                return NotFound();
+            }
+
+            var model = new FeeDetail
+            {
+                FeeDetailID = viewItem.FeeDetailID,
+                FeeID = viewItem.FeeID,
+                ClassID = viewItem.ClassID,
+                FinancialYearID = viewItem.FinancialYearID,
+                SemesterID = viewItem.SemesterID,
+                IsActive = viewItem.IsActive
+            };
+
+            await PopulateMappingDropdownsAsync(model);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditMapping(int id, FeeDetail model)
+        {
+            if (id != model.FeeDetailID)
+            {
+                return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateMappingDropdownsAsync(model);
+                return View(model);
+            }
+
+            if (!TryGetCurrentUserId(out var performedBy))
+            {
+                return Challenge();
+            }
+            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+            var result = await _feeService.SaveFeeDetailAsync(model, performedBy, ipAddress);
+            if (result.StatusCode == 200)
+            {
+                TempData["SuccessMessage"] = "Fee mapping updated successfully.";
+                return RedirectToAction(nameof(Mappings));
+            }
+
+            ModelState.AddModelError(string.Empty, result.Message);
+            await PopulateMappingDropdownsAsync(model);
+            return View(model);
+        }
+
         private async Task PopulateMappingDropdownsAsync(FeeDetail? model = null)
         {
             var fees = await _feeService.GetFeeMasterAllAsync();

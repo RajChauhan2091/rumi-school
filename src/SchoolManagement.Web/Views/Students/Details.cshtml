@@ -65,27 +65,15 @@
             <div class="card-body-custom">
                 <h5 class="fw-bold mb-3 text-primary border-bottom pb-2"><i class="bi bi-person-badge-fill me-2"></i>Personal & Academic Info</h5>
                 <div class="row g-3 mb-4">
-                    <div class="col-md-6 col-lg-4">
-                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Place of Birth</label>
-                        <div class="fw-semibold">@(Model.PlaceOfBirth ?? "-")</div>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
-                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Nationality</label>
-                        <div class="fw-semibold">@(Model.Nationality ?? "-")</div>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
-                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Category</label>
-                        <div class="fw-semibold">@(Model.Category ?? "-")</div>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
-                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Religion</label>
-                        <div class="fw-semibold">@(Model.Religion ?? "-")</div>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6">
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Aadhaar Number</label>
-                        <div class="fw-semibold">@(Model.AadhaarNumber ?? "-")</div>
+                        <div class="fw-semibold">
+                            @(!string.IsNullOrEmpty(Model.AadhaarNumber) && Model.AadhaarNumber.Length == 12 
+                                ? $"{Model.AadhaarNumber.Substring(0, 4)}-{Model.AadhaarNumber.Substring(4, 4)}-{Model.AadhaarNumber.Substring(8, 4)}" 
+                                : Model.AadhaarNumber ?? "-")
+                        </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6">
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Email Address</label>
                         <div class="fw-semibold">@(Model.EmailAddress ?? "-")</div>
                     </div>
@@ -121,15 +109,23 @@
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Mother's Occupation</label>
                         <div class="fw-semibold">@(Model.MotherOccupation ?? "-")</div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6 col-lg-3">
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Guardian Name</label>
                         <div class="fw-semibold">@(Model.GuardianName ?? "-")</div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6 col-lg-3">
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Guardian Mobile</label>
                         <div class="fw-semibold">@(Model.GuardianMobileNumber ?? "-")</div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6 col-lg-3">
+                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Guardian 2 Name</label>
+                        <div class="fw-semibold">@(Model.Guardian2Name ?? "-")</div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Guardian 2 Mobile</label>
+                        <div class="fw-semibold">@(Model.Guardian2MobileNumber ?? "-")</div>
+                    </div>
+                    <div class="col-md-12">
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Emergency Contact</label>
                         <div class="fw-semibold text-danger">@Model.EmergencyContactNumber</div>
                     </div>
@@ -145,19 +141,11 @@
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Address Line 2</label>
                         <div class="fw-semibold">@(Model.AddressLine2 ?? "-")</div>
                     </div>
-                    <div class="col-md-4 col-lg-3">
+                    <div class="col-md-6">
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">City</label>
                         <div class="fw-semibold">@Model.City</div>
                     </div>
-                    <div class="col-md-4 col-lg-3">
-                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">State</label>
-                        <div class="fw-semibold">@Model.State</div>
-                    </div>
-                    <div class="col-md-4 col-lg-3">
-                        <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Country</label>
-                        <div class="fw-semibold">@Model.Country</div>
-                    </div>
-                    <div class="col-md-4 col-lg-3">
+                    <div class="col-md-6">
                         <label class="text-muted fs-8 text-uppercase fw-semibold mb-0">Pin Code</label>
                         <div class="fw-semibold">@Model.PinCode</div>
                     </div>

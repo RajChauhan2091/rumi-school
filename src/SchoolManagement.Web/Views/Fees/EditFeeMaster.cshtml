@@ -1,0 +1,42 @@
+@model SchoolManagement.Domain.Entities.FeeMaster
+@{
+    ViewData["Title"] = "Edit Fee Configuration";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="card-header-crimson">
+                <h5>Edit Fee Configuration</h5>
+            </div>
+            <div class="card-body-custom">
+                <form asp-action="EditFeeMaster" method="post">
+                    <input type="hidden" asp-for="FeeID" />
+                    <input type="hidden" asp-for="CreatedDate" />
+                    <input type="hidden" asp-for="CreatedBy" />
+                    
+                    <div class="mb-3">
+                        <label asp-for="Fee" class="form-label fw-medium">Fee Amount (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input asp-for="Fee" type="number" step="0.01" min="0" class="form-control" placeholder="e.g. 5000.00" required />
+                        </div>
+                        <span asp-validation-for="Fee" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" type="checkbox" class="form-check-input" id="feeActiveSwitch" />
+                            <label class="form-check-label" for="feeActiveSwitch">Is Active</label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to List</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

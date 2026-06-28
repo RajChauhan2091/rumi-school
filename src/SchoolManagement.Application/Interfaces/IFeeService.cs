@@ -9,6 +9,7 @@ namespace SchoolManagement.Application.Interfaces
     {
         // FeeMaster Configs
         Task<IEnumerable<FeeMaster>> GetFeeMasterAllAsync();
+        Task<FeeMaster?> GetFeeMasterByIdAsync(int id);
         Task<DbOperationResult> SaveFeeMasterAsync(FeeMaster entity, int performedBy, string ipAddress);
 
         // FeeDetail Mappings
@@ -19,6 +20,7 @@ namespace SchoolManagement.Application.Interfaces
 
         // Semesters
         Task<IEnumerable<SemesterMaster>> GetSemestersAsync();
+        Task<IEnumerable<SemesterMaster>> GetSemestersAllAsync();
         Task<SemesterMaster?> GetSemesterByIdAsync(int id);
         Task<DbOperationResult> SaveSemesterAsync(SemesterMaster entity, int performedBy, string ipAddress);
         Task<DbOperationResult> DeleteSemesterAsync(int id, int performedBy, string ipAddress);

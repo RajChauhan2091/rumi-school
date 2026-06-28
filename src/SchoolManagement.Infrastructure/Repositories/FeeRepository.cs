@@ -27,6 +27,11 @@ namespace SchoolManagement.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<FeeMaster?> GetFeeMasterByIdAsync(int id)
+        {
+            return await _context.Fees.FindAsync(id);
+        }
+
         public async Task<DbOperationResult> SaveFeeMasterAsync(FeeMaster entity, int performedBy, string ipAddress)
         {
             var result = await _context.DbOperationResults
@@ -99,6 +104,14 @@ namespace SchoolManagement.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<SemesterMaster>> GetSemestersAllAsync()
+        {
+            return await _context.Semesters
+                .Where(s => !s.IsDeleted)
+                .OrderBy(s => s.SemesterName)
+                .ToListAsync();
+        }
+
         public async Task<SemesterMaster?> GetSemesterByIdAsync(int id)
         {
             return await _context.Semesters
@@ -113,7 +126,6 @@ namespace SchoolManagement.Infrastructure.Repositories
                 {
                     entity.CreatedBy = performedBy;
                     entity.CreatedDate = DateTime.UtcNow;
-                    entity.IsActive = true;
                     entity.IsDeleted = false;
                     _context.Semesters.Add(entity);
                 }
@@ -125,6 +137,7 @@ namespace SchoolManagement.Infrastructure.Repositories
                         return new DbOperationResult { StatusCode = 404, Message = "Semester not found." };
                     }
                     existing.SemesterName = entity.SemesterName;
+                    existing.IsActive = entity.IsActive;
                     existing.UpdatedBy = performedBy;
                     existing.UpdatedDate = DateTime.UtcNow;
                     _context.Semesters.Update(existing);

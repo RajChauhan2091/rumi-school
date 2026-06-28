@@ -18,6 +18,7 @@ namespace SchoolManagement.Domain.Entities
         public bool IsFullyPaid { get; set; }
         public decimal FeePaid { get; set; }
         public int TotalInstallment { get; set; }
+        public string? Remarks { get; set; }
         public System.DateTime CreatedDate { get; set; }
         public decimal FeeRemaining { get; set; }
     }

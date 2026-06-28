@@ -5,7 +5,7 @@ namespace SchoolManagement.Domain.Entities
     public class StudentDetailsView
     {
         public int StudentId { get; set; }
-        public string GrNo { get; set; } = string.Empty;
+        public string? GrNo { get; set; }
         public DateTime AdmissionDate { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string? MiddleName { get; set; }
@@ -15,7 +15,7 @@ namespace SchoolManagement.Domain.Entities
         public string Gender { get; set; } = string.Empty;
         public byte[]? StudentPhoto { get; set; }
         public string? PlaceOfBirth { get; set; }
-        public string Nationality { get; set; } = "Indian";
+        public string? Nationality { get; set; }
         public string? BloodGroup { get; set; }
         public string? Category { get; set; }
         public string? Religion { get; set; }
@@ -23,8 +23,8 @@ namespace SchoolManagement.Domain.Entities
         public string AddressLine1 { get; set; } = string.Empty;
         public string? AddressLine2 { get; set; }
         public string City { get; set; } = string.Empty;
-        public string State { get; set; } = string.Empty;
-        public string Country { get; set; } = "India";
+        public string? State { get; set; }
+        public string? Country { get; set; }
         public string PinCode { get; set; } = string.Empty;
         public string FatherName { get; set; } = string.Empty;
         public string? FatherOccupation { get; set; }
@@ -34,6 +34,8 @@ namespace SchoolManagement.Domain.Entities
         public string? MotherMobileNumber { get; set; }
         public string? GuardianName { get; set; }
         public string? GuardianMobileNumber { get; set; }
+        public string? Guardian2Name { get; set; }
+        public string? Guardian2MobileNumber { get; set; }
         public string EmergencyContactNumber { get; set; } = string.Empty;
         public string? PreviousSchoolName { get; set; }
         public int AdmissionFinancialYearId { get; set; }

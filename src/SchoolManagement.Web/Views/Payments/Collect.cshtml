@@ -6,7 +6,7 @@
 
 <div class="row justify-content-center">
     <div class="col-md-10 col-lg-8">
-        <div class="content-card shadow-lg border-0 rounded-3">
+        <div class="content-card shadow-lg border-0 rounded-3 animate-in">
             <div class="card-header-crimson p-4 rounded-top-3">
                 <h4 class="mb-0 text-white"><i class="bi bi-receipt me-2"></i>Fee Collection Slip</h4>
             </div>
@@ -118,9 +118,9 @@
                         </div>
                     </div>
 
-                    <!-- Payment Mode -->
+                    <!-- Payment Mode & Photo Receipt -->
                     <div class="row mb-3">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <label asp-for="PaymentMode" class="form-label fw-bold text-dark">Payment Mode</label>
                             <select asp-for="PaymentMode" class="form-select" id="paymentModeSelect" onchange="toggleOnlineDetails()" required>
                                 <option value="Cash">Cash</option>
@@ -130,35 +130,44 @@
                                 <option value="Cheque">Cheque</option>
                             </select>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Upload Receipt / Screenshot photo <span class="text-danger">*</span></label>
+                            <input type="file" name="transactionPhotoFile" class="form-control" accept="image/*" required />
+                            <span class="text-muted small fs-8">Allowed files: JPG, PNG, WebP. Receipt photo is mandatory.</span>
+                        </div>
                     </div>
 
                     <!-- Online transaction details wrapper -->
                     <div id="onlineDetailsDiv" class="mb-4" style="display:none;">
                         <div class="card border-dashed p-3 bg-light">
-                            <div class="mb-3">
+                            <div class="mb-0">
                                 <label asp-for="TransactionRef" class="form-label fw-semibold text-dark">Transaction / Reference Number</label>
                                 <input asp-for="TransactionRef" class="form-control" placeholder="Enter UPI Trans ID / Cheque No / Reference" id="txRefInput" />
                                 <span asp-validation-for="TransactionRef" class="text-danger"></span>
-                            </div>
-                            <div class="mb-0">
-                                <label class="form-label fw-semibold text-dark">Upload Screenshot / Receipt photo</label>
-                                <input type="file" name="transactionPhotoFile" class="form-control" accept="image/*" />
-                                <span class="text-muted small">Allowed files: JPG, PNG, WebP (Max 2MB).</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Installment & Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             <label asp-for="TotalInstallment" class="form-label fw-bold text-dark">Installment #</label>
                             <input asp-for="TotalInstallment" type="number" class="form-control" min="1" max="12" required />
                             <span asp-validation-for="TotalInstallment" class="text-danger"></span>
                         </div>
-                        <div class="col-md-6 d-flex align-items-end mb-3">
+                        <div class="col-md-6 d-flex align-items-end">
                             <div class="alert alert-info py-2 px-3 mb-0 w-100 fs-7">
                                 <i class="bi bi-info-circle-fill me-1 text-primary"></i> If outstanding balance becomes zero, the receipt is automatically marked as **Fully Paid**.
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label asp-for="Remarks" class="form-label fw-bold text-dark">Remarks / Payment Notes</label>
+                            <textarea asp-for="Remarks" class="form-control" rows="2" placeholder="e.g. Cash handed over to clerk, Sem-1 full payment..."></textarea>
+                            <span asp-validation-for="Remarks" class="text-danger"></span>
                         </div>
                     </div>
 

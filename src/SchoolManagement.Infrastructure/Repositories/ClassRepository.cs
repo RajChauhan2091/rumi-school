@@ -40,9 +40,10 @@ namespace SchoolManagement.Infrastructure.Repositories
         {
             var result = await _context.DbOperationResults
                 .FromSqlRaw(
-                    "EXEC usp_Class_Save @ClassId, @ClassName, @PerformedBy, @IPAddress",
+                    "EXEC usp_Class_Save @ClassId, @ClassName, @IsActive, @PerformedBy, @IPAddress",
                     new SqlParameter("@ClassId", entity.ClassId),
                     new SqlParameter("@ClassName", entity.ClassName ?? (object)DBNull.Value),
+                    new SqlParameter("@IsActive", entity.IsActive),
                     new SqlParameter("@PerformedBy", performedBy),
                     new SqlParameter("@IPAddress", ipAddress ?? (object)DBNull.Value)
                 )

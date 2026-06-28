@@ -3,9 +3,9 @@
     ViewData["Title"] = "Classes";
 }
 
-<div class="content-card">
+<div class="content-card animate-in">
     <div class="card-header-crimson">
-        <h5>Classes List</h5>
+        <h5><i class="bi bi-journal-bookmark-fill me-1" style="font-size: 0.85rem; color: var(--primary);"></i>Classes List</h5>
         <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Class</a>
     </div>
     <div class="card-body-custom p-0">
@@ -24,7 +24,7 @@
                     {
                         <tr>
                             <td>@item.ClassId</td>
-                            <td class="fw-semibold text-primary">@item.ClassName</td>
+                            <td class="fw-semibold" style="color: var(--primary);">@item.ClassName</td>
                             <td>
                                 @if (item.IsActive)
                                 {

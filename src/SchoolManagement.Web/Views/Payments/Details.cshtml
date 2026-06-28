@@ -1,0 +1,144 @@
+@model SchoolManagement.Domain.Entities.StudentPaymentsView
+@{
+    ViewData["Title"] = "Fee Payment Receipt";
+}
+
+<style>
+    @@media print {
+        /* Hide everything except the receipt card content container */
+        body * {
+            visibility: hidden;
+            background: none !important;
+        }
+        .content-card, .content-card * {
+            visibility: visible;
+        }
+        /* Position the receipt at the top-left of the printed page */
+        .content-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .d-print-none {
+            display: none !important;
+        }
+        .card-header-crimson {
+            background-color: #800000 !important;
+            color: white !important;
+            border: none !important;
+        }
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-7">
+        <div class="content-card shadow-sm border rounded-3 bg-white">
+            <div class="card-header-crimson d-flex justify-content-between align-items-center p-3 rounded-top-3">
+                <h5 class="mb-0 text-white"><i class="bi bi-file-earmark-text-fill me-2"></i>Fee Payment Receipt</h5>
+                <div class="d-print-none">
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-light me-1"><i class="bi bi-printer"></i> Print</button>
+                    <a asp-action="Index" class="btn btn-sm btn-secondary">Back</a>
+                </div>
+            </div>
+            <div class="card-body-custom p-4">
+                <div class="text-center border-bottom pb-3 mb-4">
+                    <div class="mb-2">
+                        <img src="~/images/rumi_logo.png" style="max-height: 85px; width: auto;" alt="Rumi Nursery School Logo" />
+                    </div>
+                    <p class="text-muted small mb-0">Official Fee Acknowledgment Receipt</p>
+                    <div class="mt-2">
+                        <span class="badge bg-secondary p-2 fs-6">Receipt #RUMI-@($"{Model.PaymentDetailID:D3}")</span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-sm-6 mb-3">
+                        <h6 class="text-muted text-uppercase fs-7 fw-bold mb-2">Student Information</h6>
+                        <div class="fw-bold fs-5 text-dark">@Model.StudentFullName</div>
+                        <div class="text-muted small mt-1">GR No: <strong class="text-dark">@Model.GrNo</strong></div>
+                    </div>
+                    <div class="col-sm-6 mb-3 text-sm-end">
+                        <h6 class="text-muted text-uppercase fs-7 fw-bold mb-2">Receipt Details</h6>
+                        <div><strong>Academic Year:</strong> @Model.FinancialYear</div>
+                        <div><strong>Semester:</strong> @Model.SemesterName</div>
+                        <div><strong>Date:</strong> @Model.CreatedDate.ToString("dd-MMM-yyyy hh:mm tt")</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Transaction Breakdown</th>
+                                <th class="text-end" style="width: 200px;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@Model.SemesterName Term Fee</div>
+                                    <span class="text-muted small">Installment #@Model.TotalInstallment</span>
+                                </td>
+                                <td class="text-end fw-semibold">₹ @Model.TotalFeeAmount.ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-end fw-semibold bg-light">Amount Paid Now:</td>
+                                <td class="text-end fw-bold text-success bg-light">₹ @Model.FeePaid.ToString("N2")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-end fw-semibold">Remaining Balance:</td>
+                                <td class="text-end fw-bold text-danger">₹ @Model.FeeRemaining.ToString("N2")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-sm-6 mb-3">
+                        <h6 class="text-muted text-uppercase fs-7 fw-bold mb-2">Payment Mechanism</h6>
+                        <div><strong>Mode:</strong> <span class="badge bg-primary">@Model.PaymentMode</span></div>
+                        @if (!string.IsNullOrEmpty(Model.TransactionRef))
+                        {
+                            <div class="mt-1"><strong>Ref Number:</strong> <code>@Model.TransactionRef</code></div>
+                        }
+                    </div>
+                    <div class="col-sm-6 mb-3 text-sm-end">
+                        <h6 class="text-muted text-uppercase fs-7 fw-bold mb-2">Status</h6>
+                        @if (Model.IsFullyPaid)
+                        {
+                            <span class="badge bg-success py-2 px-3 fs-6"><i class="bi bi-check-circle-fill me-1"></i> Fully Paid</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark py-2 px-3 fs-6"><i class="bi bi-exclamation-triangle-fill me-1"></i> Partial Payment</span>
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Remarks))
+                {
+                    <div class="border rounded p-3 bg-light mb-4">
+                        <h6 class="text-muted text-uppercase fs-7 fw-bold mb-1">Receipt Remarks</h6>
+                        <p class="mb-0 text-dark italic small">"@Model.Remarks"</p>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Transactionphoto))
+                {
+                    <div class="border rounded p-3 text-center bg-light d-print-none">
+                        <h6 class="text-muted text-uppercase fs-7 fw-bold mb-2 text-start"><i class="bi bi-paperclip"></i> Receipt Attachment</h6>
+                        <img src="data:image/jpeg;base64,@Model.Transactionphoto" class="img-thumbnail" style="max-height: 250px; object-fit: contain;" alt="Payment screenshot/receipt" />
+                        <div class="mt-2">
+                            <a href="data:image/jpeg;base64,@Model.Transactionphoto" download="Receipt-RUMI-@($"{Model.PaymentDetailID:D3}")" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Download Image</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
