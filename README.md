@@ -7,17 +7,10 @@ A secure, high-performance, and beautifully styled web-based **School Management
 ## 1. Project Directory Structure
 
 ```text
-├── database/                   # Database schemas, seeds, functions, views, SPs
-│   ├── 01_create_database.sql  # Database creation
-│   ├── 02_create_tables.sql    # Table schema definitions
-│   ├── 03_create_constraints.sql # Foreign keys and check constraints
-│   ├── 04_create_indexes.sql    # Custom filtered unique indexes
-│   ├── 05_seed_data.sql        # Demo data (staff, fees, semesters, students, etc.)
-│   ├── 06_functions.sql        # Utility functions (GrNo generator, etc.)
-│   ├── 07_views.sql            # Analytical and details views (vw_StudentDetails, etc.)
-│   ├── 08_create_stored_procedures.sql # Mutation/search procedures
-│   ├── 09_staff_and_fees_procedures.sql # Staff, fee schedules, and payment SPs
-│   └── schema_and_seed.sql     # Consolidated setup script for clean deployments
+├── database/                   # Database schema, business objects, and seed data
+│   ├── 01_create_tables.sql    # Database creation, tables, constraints, and indexes
+│   ├── 02_sp_functions_views.sql # Functions, views, and stored procedures
+│   └── 03_seed_data.sql        # Demo data and initial records
 ├── docs/                       # System design and architecture docs
 ├── src/                        # C# source code solution (.NET 7)
 │   ├── SchoolManagement.Domain # Keyless query entities and data models
@@ -33,22 +26,14 @@ A secure, high-performance, and beautifully styled web-based **School Management
 
 To deploy the database to a clean local or remote SQL Server instance, choose **one** of the two methods below:
 
-### Method A: Single Consolidated Script (Recommended)
+### Database Deployment
 1. Open your SQL Server Management Studio (SSMS) or command-line client.
-2. Open and execute the consolidated file: **`database/schema_and_seed.sql`**.
-   * *This single file automatically drops the database if it exists, initializes tables, establishes keys, hooks up views/procedures, and inserts ready-to-test seed records.*
+2. Run the SQL files in the `database/` folder in this order:
+   1. `01_create_tables.sql`
+   2. `02_sp_functions_views.sql`
+   3. `03_seed_data.sql`
 
-### Method B: Ordered Batch Deployment
-Alternatively, you can run the files in the `database/` folder sequentially:
-1. `01_create_database.sql`
-2. `02_create_tables.sql`
-3. `03_create_constraints.sql`
-4. `04_create_indexes.sql`
-5. `05_seed_data.sql`
-6. `06_functions.sql`
-7. `07_views.sql`
-8. `08_create_stored_procedures.sql`
-9. `09_staff_and_fees_procedures.sql`
+These three files contain the complete database setup for tables, objects, and seed data.
 
 ---
 
