@@ -21,8 +21,8 @@ graph TD
 1. **`SchoolManagement.Domain`**
    * **Purpose**: Core enterprise models and validation entities. It does not depend on any other project or external framework.
    * **Key Components**:
-     * C# representation of database tables (e.g., [StudentInfo.cs](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Domain/Entities/StudentInfo.cs), `ClassMaster`, `DivisionMaster`, `FinancialYear`, `ClassSchedules`, `StudentMappings`).
-     * View models mapping complex queries (e.g., [StudentDetailsView.cs](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Domain/Entities/StudentDetailsView.cs) matching database view `vw_StudentDetails`).
+     * C# representation of database tables (e.g., [SMS_StudentInfo.cs](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Domain/Entities/SMS_StudentInfo.cs), `SMS_ClassMaster`, `SMS_DivisionMaster`, `SMS_FinancialYear`, `SMS_ClassSchedules`, `SMS_StudentMappings`).
+     * View models mapping complex queries (e.g., [StudentDetailsView.cs](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Domain/Entities/StudentDetailsView.cs) matching database view `vw_StudentDetails`).
      * Common generic return models (e.g., `DbOperationResult` and `DashboardData`).
 
 2. **`SchoolManagement.Application`**
@@ -35,12 +35,12 @@ graph TD
    * **Purpose**: External integrations, database management, and EF Core mappings.
    * **Key Components**:
      * `SchoolDbContext`: Inherits from EF Core's `DbContext`. Maps stored procedures and views. Fluent API mappings handle properties like ignoring the unused `RecordId` on `DbOperationResult`.
-     * Repositories (e.g., [StudentRepository.cs](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Infrastructure/Repositories/StudentRepository.cs)): Leverages EF Core's `FromSqlRaw` to run database-stored procedures.
+     * Repositories (e.g., [StudentRepository.cs](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Infrastructure/Repositories/StudentRepository.cs)): Leverages EF Core's `FromSqlRaw` to run database-stored procedures.
 
 4. **`SchoolManagement.Web`**
    * **Purpose**: Presentation layer using ASP.NET Core MVC (Targeting .NET 7.0).
    * **Key Components**:
-     * MVC Controllers (e.g., [StudentsController.cs](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Web/Controllers/StudentsController.cs)): Handles web requests, mapping actions, and validating model binds.
+     * MVC Controllers (e.g., [StudentsController.cs](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/src/SchoolManagement.Web/Controllers/StudentsController.cs)): Handles web requests, mapping actions, and validating model binds.
      * Razor Views (`.cshtml` files): Generates dynamic HTML.
      * Configuration files (`appsettings.json`): Manages local connection string settings.
      * Startup setup (`Program.cs`): Hooks up cookie middleware and Dependency Injection containers.
@@ -52,19 +52,19 @@ graph TD
 The system implements cookie authentication and role-based access control.
 
 * **Session Middleware**: Configured in `Program.cs` using `.AddCookie` default authentication schemes.
-* **Roles**:
+* **SMS_Roles**:
   * `Administrator`: Full system authorization. Can manage Financial Years, Divisions, Classes, Class Schedules, and Students.
   * `Clerk`: Data-entry restricted access. Authorized to edit/add students and manage class allocations. Restricted from accessing system configuration screens.
 * **Security Mechanics**:
   * Passwords are encrypted using PBKDF2 with SHA-256 (10,000 iterations + Salt).
-  * Controllers are decorated with `[Authorize]` or `[Authorize(Roles = "Administrator")]` attributes. Unauthorized users are dynamically redirected to `/Account/AccessDenied`.
+  * Controllers are decorated with `[Authorize]` or `[Authorize(SMS_Roles = "Administrator")]` attributes. Unauthorized users are dynamically redirected to `/Account/AccessDenied`.
 
 ---
 
 ## 3. Database Operations (SP-First & Views)
 
 To leverage SQL Server's performance and transaction capabilities:
-* **Mutations (Insert/Update/Delete)**: Routed through stored procedures (e.g., `usp_Student_Save`, `usp_Student_Delete`, `usp_FinancialYear_Save`). The procedures run inside transactions and write audit logs into `AuditLogs` automatically using SQL Server's native `FOR JSON PATH` mechanism.
+* **Mutations (Insert/Update/Delete)**: Routed through stored procedures (e.g., `usp_Student_Save`, `usp_Student_Delete`, `usp_FinancialYear_Save`). The procedures run inside transactions and write audit logs into `SMS_AuditLogs` automatically using SQL Server's native `FOR JSON PATH` mechanism.
 * **Queries**: Structured as database views (e.g., `vw_StudentDetails`, `vw_ActiveClassSchedules`). Stored procedures select from these views (e.g., `usp_Student_GetAll`, `usp_Student_GetById`, `usp_Student_Search`) to retrieve full, denormalized records.
 
 ---
@@ -138,19 +138,19 @@ The web app interface is styled with a custom **Crimson Red & Deep Velvet Burgun
 Phase 2 introduces comprehensive support for administrative configurations (Staff, Semesters, Fees) and financial workflows (Payments).
 
 ### 6.1. Staff Management
-*   **Domain Representation**: `StaffDetail` and `StaffTypeMaster`.
+*   **Domain Representation**: `SMS_StaffDetail` and `SMS_StaffTypeMaster`.
 *   **Key Operations**: Add, Edit, Delete, and View staff members. Staff are assigned to class schedules to represent class teachers.
 
 ### 6.2. Fee Configurations
-*   **Tables**: `FeeMaster` (stores base fee amounts), `SemesterMaster` (e.g., "Sem-1", "Sem-2"), and `FeeDetail` (maps fees and semesters to classes for a specific Financial Year).
+*   **Tables**: `SMS_FeeMaster` (stores base fee amounts), `SMS_SemesterMaster` (e.g., "Sem-1", "Sem-2"), and `SMS_FeeDetail` (maps fees and semesters to classes for a specific Financial Year).
 *   **SP Integration**: `usp_Dropdown_GetAvailableFeesForClass` yields available class fees for selection during fee collection. It returns the full set of columns mapped to the C# `FeeDetailsView` entity.
 
 ### 6.3. Payments CRUD & Student Ledger
 *   **Full CRUD Workflow**:
     *   **Index (All Payments)**: Accessible via the sidebar "Student Payments" link. Lists all payment receipts in the system with DataTables-powered filtering, sorting, and export capabilities (Excel, PDF, Print). Features a receipt photo modal preview.
     *   **Student Ledger**: Visualizes a student's entire fee transaction history and balances. Accessible via the student directory or details screen.
-    *   **Payment Collection (Collect)**: Allows selecting a class-configured semester fee, choosing payment mode (Cash, UPI, Card, NetBanking, Cheque), adding a transaction reference, and uploading a receipt photo (which is stored as a Base64 string in `PaymentDetail`).
-    *   **Delete**: Soft-deletes payment records using `usp_PaymentDetail_Delete` and logs the delete operation in `AuditLogs`.
+    *   **Payment Collection (Collect)**: Allows selecting a class-configured semester fee, choosing payment mode (Cash, UPI, Card, NetBanking, Cheque), adding a transaction reference, and uploading a receipt photo (which is stored as a Base64 string in `SMS_PaymentDetail`).
+    *   **Delete**: Soft-deletes payment records using `usp_PaymentDetail_Delete` and logs the delete operation in `SMS_AuditLogs`.
 
 ### 6.4. Pending Fees Dashboard & Reporting Page
 *   **Reorganized KPI Cards Grid**:
@@ -172,19 +172,20 @@ Phase 2 introduces comprehensive support for administrative configurations (Staf
 To deploy or rebuild the database to a clean, error-free state, run the SQL scripts located in the `database/` and `scratch/` directories in the following order:
 
 ### 7.1. Database Setup Sequence
-1.  **[01_create_database.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/01_create_database.sql)**: Drops the existing `SMS` database if present and initializes a clean one.
-2.  **[02_create_tables.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/02_create_tables.sql)**: Sets up tables for Financial Years, Class/Divisions, Students, Staff, Fees, and Payments.
-3.  **[03_create_constraints.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/03_create_constraints.sql)**: Adds foreign keys and check constraints.
-4.  **[04_create_indexes.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/04_create_indexes.sql)**: Implements filtered unique indexes.
-5.  **[05_seed_data.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/05_seed_data.sql)**: Seeds default users, academic configurations, staff, classes, divisions, and demo students.
-6.  **[06_functions.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/06_functions.sql)**: Declares utility functions.
-7.  **[07_views.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/07_views.sql)**: Creates base reporting views.
-8.  **[08_create_stored_procedures.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/08_create_stored_procedures.sql)**: Sets up core stored procedures.
-9.  **[09_staff_and_fees_procedures.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/09_staff_and_fees_procedures.sql)**: Registers staff, fee schedules, and payment stored procedures.
-10. **[alter_photo_to_binary.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/scratch/alter_photo_to_binary.sql)**: Alters the photo column to binary, updates student views/procedures, and modifies `usp_Student_Save` to allow manual user-provided GR Numbers with duplicate validation.
+1.  **[01_create_database.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/01_create_database.sql)**: Drops the existing `SMS` database if present and initializes a clean one.
+2.  **[02_create_tables.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/02_create_tables.sql)**: Sets up tables for Financial Years, Class/Divisions, Students, Staff, Fees, and Payments.
+3.  **[03_create_constraints.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/03_create_constraints.sql)**: Adds foreign keys and check constraints.
+4.  **[04_create_indexes.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/04_create_indexes.sql)**: Implements filtered unique indexes.
+5.  **[05_seed_data.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/05_seed_data.sql)**: Seeds default users, academic configurations, staff, classes, divisions, and demo students.
+6.  **[06_functions.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/06_functions.sql)**: Declares utility functions.
+7.  **[07_views.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/07_views.sql)**: Creates base reporting views.
+8.  **[08_create_stored_procedures.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/08_create_stored_procedures.sql)**: Sets up core stored procedures.
+9.  **[09_staff_and_fees_procedures.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/database/09_staff_and_fees_procedures.sql)**: Registers staff, fee schedules, and payment stored procedures.
+10. **[alter_photo_to_binary.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/scratch/alter_photo_to_binary.sql)**: Alters the photo column to binary, updates student views/procedures, and modifies `usp_Student_Save` to allow manual user-provided GR Numbers with duplicate validation.
 
 ### 7.2. Alternate: Fast Patch Script
 If the base database is already seeded, you can deploy the newest Phase 2 features directly using:
-*   **[deploy_payment_fixes.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/scratch/deploy_payment_fixes.sql)**: Deploys SPs for the Payments Index, soft delete operations, and dropdown list fixes.
-*   **[alter_photo_to_binary.sql](file:///C:/Users/Steve/.gemini/antigravity/scratch/sms-mvc/scratch/alter_photo_to_binary.sql)**: Integrates manual GR entry rules and binary photo processing.
+*   **[deploy_payment_fixes.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/scratch/deploy_payment_fixes.sql)**: Deploys SPs for the Payments Index, soft delete operations, and dropdown list fixes.
+*   **[alter_photo_to_binary.sql](file:///C:/SMS_Users/Steve/.gemini/antigravity/scratch/sms-mvc/scratch/alter_photo_to_binary.sql)**: Integrates manual GR entry rules and binary photo processing.
+
 

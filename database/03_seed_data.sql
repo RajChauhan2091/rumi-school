@@ -2,8 +2,8 @@
 USE SMS;
 GO
 
--- 1. Seed Roles
-INSERT INTO Roles (RoleName, CreatedBy)
+-- 1. Seed SMS_Roles
+INSERT INTO SMS_Roles (RoleName, CreatedBy)
 VALUES 
     ('Administrator', 1),
     ('Clerk', 1);
@@ -11,26 +11,26 @@ GO
 
 -- 2. Seed Default Admin User
 -- Supply AdminPasswordHash through sqlcmd or your deployment secret store.
-INSERT INTO Users (Username, PasswordHash, FullName, EmailAddress, CreatedBy)
+INSERT INTO SMS_Users (Username, PasswordHash, FullName, EmailAddress, CreatedBy)
 VALUES 
     ('admin', 'AQAAAAEAACcQAAAAEL/5rBAXlEOyPr8qkI3zrkG9s7dxmeW1CavmFnI9hhntrdub38kMW0xsNBhNLh5X3A==', 'System Administrator', 'admin@sms.com', 1);
 GO
 
 -- 3. Map Admin User to Administrator Role
-INSERT INTO UserRoles (UserId, RoleId, CreatedBy)
+INSERT INTO SMS_UserRoles (UserId, RoleId, CreatedBy)
 VALUES 
     (1, 1, 1);
 GO
 
--- 4. Seed FinancialYear
-INSERT INTO FinancialYear (FinancialYear, StartDate, EndDate, IsCurrent, CreatedBy)
+-- 4. Seed SMS_FinancialYear
+INSERT INTO SMS_FinancialYear (SMS_FinancialYear, StartDate, EndDate, IsCurrent, CreatedBy)
 VALUES 
     ('2025-2026', '2025-04-01', '2026-03-31', 0, 1),
     ('2026-2027', '2026-04-01', '2027-03-31', 1, 1);
 GO
 
--- 5. Seed DivisionMaster
-INSERT INTO DivisionMaster (DivisionName, CreatedBy)
+-- 5. Seed SMS_DivisionMaster
+INSERT INTO SMS_DivisionMaster (DivisionName, CreatedBy)
 VALUES 
     ('A', 1),
     ('B', 1),
@@ -38,8 +38,8 @@ VALUES
     ('D', 1);
 GO
 
--- 6. Seed ClassMaster
-INSERT INTO ClassMaster (ClassName, CreatedBy)
+-- 6. Seed SMS_ClassMaster
+INSERT INTO SMS_ClassMaster (ClassName, CreatedBy)
 VALUES 
     ('Nursery', 1),
     ('Jr KG', 1),
@@ -58,23 +58,23 @@ VALUES
     ('Class 12', 1);
 GO
 
--- 7. Seed SemesterMaster
-INSERT INTO SemesterMaster (SemesterName, CreatedBy)
+-- 7. Seed SMS_SemesterMaster
+INSERT INTO SMS_SemesterMaster (SemesterName, CreatedBy)
 VALUES 
     ('Sem-1', 1),
     ('Sem-2', 1);
 GO
 
--- 8. Seed StaffTypeMaster
-INSERT INTO StaffTypeMaster (StaffType, CreatedBy)
+-- 8. Seed SMS_StaffTypeMaster
+INSERT INTO SMS_StaffTypeMaster (StaffType, CreatedBy)
 VALUES 
     ('Teaching Staff', 1),
     ('Non-Teaching Staff', 1),
     ('Admin Support', 1);
 GO
 
--- 9. Seed FeeMaster
-INSERT INTO FeeMaster (Fee, CreatedBy)
+-- 9. Seed SMS_FeeMaster
+INSERT INTO SMS_FeeMaster (Fee, CreatedBy)
 VALUES 
     (3000.00, 1),
     (5000.00, 1),
@@ -83,7 +83,7 @@ VALUES
 GO
 
 -- 10. Seed Staff Details (so we can assign them to Class Schedules)
-INSERT INTO StaffDetail (
+INSERT INTO SMS_StaffDetail (
     StaffFirstName, StaffMiddleName, StaffLastName, StaffType, Mobileno, 
     EmergencyContact, AddressLine1, AddressLine2, AadhaarNo, BankName, IFSCCode, AccountNo, 
     PanNo, DOB, IsActive, CreatedBy
@@ -95,16 +95,16 @@ VALUES
 GO
 
 -- 11. Seed Class Schedules (connecting Classes, Divisions, Financial Year, Staff)
--- Class 10 (ClassId=13), Division A (DivisionId=1), FinancialYear 2026-2027 (FYId=2), StaffId=1 (John Doe)
--- Class 12 (ClassId=15), Division B (DivisionId=2), FinancialYear 2026-2027 (FYId=2), StaffId=2 (Mary Smith)
-INSERT INTO ClassSchedules (ClassId, DivisionId, FinancialYearId, MaxCapacity, StaffId, CreatedBy)
+-- Class 10 (ClassId=13), Division A (DivisionId=1), SMS_FinancialYear 2026-2027 (FYId=2), StaffId=1 (John Doe)
+-- Class 12 (ClassId=15), Division B (DivisionId=2), SMS_FinancialYear 2026-2027 (FYId=2), StaffId=2 (Mary Smith)
+INSERT INTO SMS_ClassSchedules (ClassId, DivisionId, FinancialYearId, MaxCapacity, StaffId, CreatedBy)
 VALUES 
     (13, 1, 2, 40, 1, 1),
     (15, 2, 2, 35, 2, 1);
 GO
 
 -- 12. Seed Students
-INSERT INTO StudentInfo (
+INSERT INTO SMS_StudentInfo (
     GrNo, AdmissionDate, FirstName, MiddleName, LastName, DateOfBirth, 
     Gender, Nationality, AddressLine1, City, State, PinCode, 
     FatherName, FatherMobileNumber, MotherName, EmergencyContactNumber, 
@@ -116,7 +116,7 @@ VALUES
 GO
 
 -- 13. Seed Student Mappings (Alice mapped to Class 10 Div A, Bob to Class 12 Div B)
-INSERT INTO StudentMappings (StudentId, ClassScheduleId, FinancialYearId, RollNo, CreatedBy)
+INSERT INTO SMS_StudentMappings (StudentId, ClassScheduleId, FinancialYearId, RollNo, CreatedBy)
 VALUES 
     (1, 1, 2, 1, 1),
     (2, 2, 2, 1, 1);
@@ -126,7 +126,7 @@ GO
 -- Class 10 (ClassId=13), Sem-1 (SemesterId=1) Fee=7000 (FeeId=3)
 -- Class 10 (ClassId=13), Sem-2 (SemesterId=2) Fee=7000 (FeeId=3)
 -- Class 12 (ClassId=15), Sem-1 (SemesterId=1) Fee=10000 (FeeId=4)
-INSERT INTO FeeDetail (FeeID, ClassID, FinancialYearID, SemesterID, IsActive, CreatedBy)
+INSERT INTO SMS_FeeDetail (FeeID, ClassID, FinancialYearID, SemesterID, IsActive, CreatedBy)
 VALUES 
     (3, 13, 2, 1, 1, 1),
     (3, 13, 2, 2, 1, 1),
@@ -134,10 +134,11 @@ VALUES
 GO
 
 -- 15. Seed Student Payments (Alice pays for Class 10 Sem-1)
-INSERT INTO PaymentDetail (StudentID, FinancialYearID, FeeID, SemesterID, PaymentMode, TransactionRef, IsFullyPaid, FeePaid, TotalInstallment, CreatedBy)
+INSERT INTO SMS_PaymentDetail (StudentID, FinancialYearID, FeeID, SemesterID, PaymentMode, TransactionRef, IsFullyPaid, FeePaid, TotalInstallment, CreatedBy)
 VALUES 
     (1, 2, 3, 1, 'Cash', 'CASH-0001', 1, 7000.00, 1, 1);
 GO
+
 
 
 

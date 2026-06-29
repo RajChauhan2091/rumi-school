@@ -12,10 +12,10 @@ GO
 USE SMS;
 GO
 
--- 1. FinancialYear Table
-CREATE TABLE FinancialYear (
+-- 1. SMS_FinancialYear Table
+CREATE TABLE SMS_FinancialYear (
     FinancialYearId INT IDENTITY(1,1) PRIMARY KEY,
-    FinancialYear VARCHAR(20) NOT NULL,
+    SMS_FinancialYear VARCHAR(20) NOT NULL,
     StartDate DATE NOT NULL,
     EndDate DATE NOT NULL,
     IsCurrent BIT NOT NULL DEFAULT 0,
@@ -29,8 +29,8 @@ CREATE TABLE FinancialYear (
 );
 GO
 
--- 2. DivisionMaster Table
-CREATE TABLE DivisionMaster (
+-- 2. SMS_DivisionMaster Table
+CREATE TABLE SMS_DivisionMaster (
     DivisionId INT IDENTITY(1,1) PRIMARY KEY,
     DivisionName VARCHAR(50) NOT NULL,
     
@@ -44,8 +44,8 @@ CREATE TABLE DivisionMaster (
 );
 GO
 
--- 3. ClassMaster Table
-CREATE TABLE ClassMaster (
+-- 3. SMS_ClassMaster Table
+CREATE TABLE SMS_ClassMaster (
     ClassId INT IDENTITY(1,1) PRIMARY KEY,
     ClassName VARCHAR(50) NOT NULL,
     
@@ -59,8 +59,8 @@ CREATE TABLE ClassMaster (
 );
 GO
 
--- 4. ClassSchedules Table
-CREATE TABLE ClassSchedules (
+-- 4. SMS_ClassSchedules Table
+CREATE TABLE SMS_ClassSchedules (
     ClassScheduleId INT IDENTITY(1,1) PRIMARY KEY,
     ClassId INT NOT NULL,
     DivisionId INT NOT NULL,
@@ -78,8 +78,8 @@ CREATE TABLE ClassSchedules (
 );
 GO
 
--- 5. StudentInfo Table
-CREATE TABLE StudentInfo (
+-- 5. SMS_StudentInfo Table
+CREATE TABLE SMS_StudentInfo (
     StudentId INT IDENTITY(1,1) PRIMARY KEY,
     
     -- Basic Information
@@ -140,8 +140,8 @@ CREATE TABLE StudentInfo (
 );
 GO
 
--- 6. StudentMappings Table
-CREATE TABLE StudentMappings (
+-- 6. SMS_StudentMappings Table
+CREATE TABLE SMS_StudentMappings (
     StudentMappingId INT IDENTITY(1,1) PRIMARY KEY,
     StudentId INT NOT NULL,
     ClassScheduleId INT NOT NULL,
@@ -158,8 +158,8 @@ CREATE TABLE StudentMappings (
 );
 GO
 
--- 7. Users Table
-CREATE TABLE Users (
+-- 7. SMS_Users Table
+CREATE TABLE SMS_Users (
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     Username VARCHAR(50) NOT NULL,
     PasswordHash VARCHAR(255) NOT NULL,
@@ -177,8 +177,8 @@ CREATE TABLE Users (
 );
 GO
 
--- 8. Roles Table
-CREATE TABLE Roles (
+-- 8. SMS_Roles Table
+CREATE TABLE SMS_Roles (
     RoleId INT IDENTITY(1,1) PRIMARY KEY,
     RoleName VARCHAR(50) NOT NULL,
     
@@ -192,8 +192,8 @@ CREATE TABLE Roles (
 );
 GO
 
--- 9. UserRoles Table
-CREATE TABLE UserRoles (
+-- 9. SMS_UserRoles Table
+CREATE TABLE SMS_UserRoles (
     UserRoleId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     RoleId INT NOT NULL,
@@ -208,8 +208,8 @@ CREATE TABLE UserRoles (
 );
 GO
 
--- 10. AuditLogs Table
-CREATE TABLE AuditLogs (
+-- 10. SMS_AuditLogs Table
+CREATE TABLE SMS_AuditLogs (
     AuditLogId INT IDENTITY(1,1) PRIMARY KEY,
     TableName VARCHAR(100) NOT NULL,
     RecordId INT NOT NULL,
@@ -229,8 +229,8 @@ CREATE TABLE AuditLogs (
 );
 GO
 
--- 11. SemesterMaster Table
-CREATE TABLE SemesterMaster (
+-- 11. SMS_SemesterMaster Table
+CREATE TABLE SMS_SemesterMaster (
     SemesterID INT IDENTITY(1,1) PRIMARY KEY,
     SemesterName NVARCHAR(30) NOT NULL,
     
@@ -244,8 +244,8 @@ CREATE TABLE SemesterMaster (
 );
 GO
 
--- 12. FeeMaster Table
-CREATE TABLE FeeMaster (
+-- 12. SMS_FeeMaster Table
+CREATE TABLE SMS_FeeMaster (
     FeeID INT IDENTITY(1,1) PRIMARY KEY,
     Fee DECIMAL(18,2) NOT NULL,
     
@@ -259,8 +259,8 @@ CREATE TABLE FeeMaster (
 );
 GO
 
--- 13. FeeDetail Table
-CREATE TABLE FeeDetail (
+-- 13. SMS_FeeDetail Table
+CREATE TABLE SMS_FeeDetail (
     FeeDetailID INT IDENTITY(1,1) PRIMARY KEY,
     FeeID INT NOT NULL,
     ClassID INT NOT NULL,
@@ -277,8 +277,8 @@ CREATE TABLE FeeDetail (
 );
 GO
 
--- 14. PaymentDetail Table
-CREATE TABLE PaymentDetail (
+-- 14. SMS_PaymentDetail Table
+CREATE TABLE SMS_PaymentDetail (
     PaymentDetailID INT IDENTITY(1,1) PRIMARY KEY,
     StudentID INT NOT NULL,
     FinancialYearID INT NOT NULL,
@@ -302,8 +302,8 @@ CREATE TABLE PaymentDetail (
 );
 GO
 
--- 15. StaffTypeMaster Table
-CREATE TABLE StaffTypeMaster (
+-- 15. SMS_StaffTypeMaster Table
+CREATE TABLE SMS_StaffTypeMaster (
     StaffTypeID INT IDENTITY(1,1) PRIMARY KEY,
     StaffType NVARCHAR(50) NOT NULL,
     
@@ -317,8 +317,8 @@ CREATE TABLE StaffTypeMaster (
 );
 GO
 
--- 16. StaffDetail Table
-CREATE TABLE StaffDetail (
+-- 16. SMS_StaffDetail Table
+CREATE TABLE SMS_StaffDetail (
     StaffID INT IDENTITY(1,1) PRIMARY KEY,
     StaffFirstName NVARCHAR(50) NOT NULL,
     StaffMiddleName NVARCHAR(50) NULL,
@@ -356,130 +356,130 @@ GO
 -- 1. FOREIGN KEY CONSTRAINTS
 -- ============================================================================
 
--- ClassSchedules Foreign Keys
-ALTER TABLE ClassSchedules
+-- SMS_ClassSchedules Foreign Keys
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_Classes_ClassId 
-    FOREIGN KEY (ClassId) REFERENCES ClassMaster(ClassId);
+    FOREIGN KEY (ClassId) REFERENCES SMS_ClassMaster(ClassId);
 
-ALTER TABLE ClassSchedules
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_Divisions_DivisionId 
-    FOREIGN KEY (DivisionId) REFERENCES DivisionMaster(DivisionId);
+    FOREIGN KEY (DivisionId) REFERENCES SMS_DivisionMaster(DivisionId);
 
-ALTER TABLE ClassSchedules
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_FinancialYears_FinancialYearId 
-    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (FinancialYearId) REFERENCES SMS_FinancialYear(FinancialYearId);
 
--- StudentInfo Foreign Keys
-ALTER TABLE StudentInfo
+-- SMS_StudentInfo Foreign Keys
+ALTER TABLE SMS_StudentInfo
     ADD CONSTRAINT FK_Students_FinancialYears_AdmissionFinancialYearId 
-    FOREIGN KEY (AdmissionFinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (AdmissionFinancialYearId) REFERENCES SMS_FinancialYear(FinancialYearId);
 
--- StudentMappings Foreign Keys
-ALTER TABLE StudentMappings
+-- SMS_StudentMappings Foreign Keys
+ALTER TABLE SMS_StudentMappings
     ADD CONSTRAINT FK_StudentMappings_Students_StudentId 
-    FOREIGN KEY (StudentId) REFERENCES StudentInfo(StudentId);
+    FOREIGN KEY (StudentId) REFERENCES SMS_StudentInfo(StudentId);
 
-ALTER TABLE StudentMappings
+ALTER TABLE SMS_StudentMappings
     ADD CONSTRAINT FK_StudentMappings_ClassSchedules_ClassScheduleId 
-    FOREIGN KEY (ClassScheduleId) REFERENCES ClassSchedules(ClassScheduleId);
+    FOREIGN KEY (ClassScheduleId) REFERENCES SMS_ClassSchedules(ClassScheduleId);
 
-ALTER TABLE StudentMappings
+ALTER TABLE SMS_StudentMappings
     ADD CONSTRAINT FK_StudentMappings_FinancialYears_FinancialYearId 
-    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (FinancialYearId) REFERENCES SMS_FinancialYear(FinancialYearId);
 
--- UserRoles Foreign Keys
-ALTER TABLE UserRoles
+-- SMS_UserRoles Foreign Keys
+ALTER TABLE SMS_UserRoles
     ADD CONSTRAINT FK_UserRoles_Users_UserId 
-    FOREIGN KEY (UserId) REFERENCES Users(UserId);
+    FOREIGN KEY (UserId) REFERENCES SMS_Users(UserId);
 
-ALTER TABLE UserRoles
+ALTER TABLE SMS_UserRoles
     ADD CONSTRAINT FK_UserRoles_Roles_RoleId 
-    FOREIGN KEY (RoleId) REFERENCES Roles(RoleId);
+    FOREIGN KEY (RoleId) REFERENCES SMS_Roles(RoleId);
 
--- ClassSchedules -> StaffDetail
-ALTER TABLE ClassSchedules
+-- SMS_ClassSchedules -> SMS_StaffDetail
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_StaffDetail_StaffId
-    FOREIGN KEY (StaffId) REFERENCES StaffDetail(StaffID);
+    FOREIGN KEY (StaffId) REFERENCES SMS_StaffDetail(StaffID);
 
--- FeeDetail Foreign Keys
-ALTER TABLE FeeDetail
+-- SMS_FeeDetail Foreign Keys
+ALTER TABLE SMS_FeeDetail
     ADD CONSTRAINT FK_FeeDetail_FeeMaster_FeeId
-    FOREIGN KEY (FeeID) REFERENCES FeeMaster(FeeID);
+    FOREIGN KEY (FeeID) REFERENCES SMS_FeeMaster(FeeID);
 
-ALTER TABLE FeeDetail
+ALTER TABLE SMS_FeeDetail
     ADD CONSTRAINT FK_FeeDetail_ClassMaster_ClassId
-    FOREIGN KEY (ClassID) REFERENCES ClassMaster(ClassId);
+    FOREIGN KEY (ClassID) REFERENCES SMS_ClassMaster(ClassId);
 
-ALTER TABLE FeeDetail
+ALTER TABLE SMS_FeeDetail
     ADD CONSTRAINT FK_FeeDetail_FinancialYears_FinancialYearId
-    FOREIGN KEY (FinancialYearID) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (FinancialYearID) REFERENCES SMS_FinancialYear(FinancialYearId);
 
-ALTER TABLE FeeDetail
+ALTER TABLE SMS_FeeDetail
     ADD CONSTRAINT FK_FeeDetail_SemesterMaster_SemesterId
-    FOREIGN KEY (SemesterID) REFERENCES SemesterMaster(SemesterID);
+    FOREIGN KEY (SemesterID) REFERENCES SMS_SemesterMaster(SemesterID);
 
--- PaymentDetail Foreign Keys
-ALTER TABLE PaymentDetail
+-- SMS_PaymentDetail Foreign Keys
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT FK_PaymentDetail_Students_StudentId
-    FOREIGN KEY (StudentID) REFERENCES StudentInfo(StudentId);
+    FOREIGN KEY (StudentID) REFERENCES SMS_StudentInfo(StudentId);
 
-ALTER TABLE PaymentDetail
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT FK_PaymentDetail_FinancialYears_FinancialYearId
-    FOREIGN KEY (FinancialYearID) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (FinancialYearID) REFERENCES SMS_FinancialYear(FinancialYearId);
 
-ALTER TABLE PaymentDetail
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT FK_PaymentDetail_FeeMaster_FeeId
-    FOREIGN KEY (FeeID) REFERENCES FeeMaster(FeeID);
+    FOREIGN KEY (FeeID) REFERENCES SMS_FeeMaster(FeeID);
 
-ALTER TABLE PaymentDetail
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT FK_PaymentDetail_SemesterMaster_SemesterId
-    FOREIGN KEY (SemesterID) REFERENCES SemesterMaster(SemesterID);
+    FOREIGN KEY (SemesterID) REFERENCES SMS_SemesterMaster(SemesterID);
 
--- StaffDetail -> StaffTypeMaster
-ALTER TABLE StaffDetail
+-- SMS_StaffDetail -> SMS_StaffTypeMaster
+ALTER TABLE SMS_StaffDetail
     ADD CONSTRAINT FK_StaffDetail_StaffTypeMaster_StaffType
-    FOREIGN KEY (StaffType) REFERENCES StaffTypeMaster(StaffTypeID);
+    FOREIGN KEY (StaffType) REFERENCES SMS_StaffTypeMaster(StaffTypeID);
 
 
 -- ============================================================================
 -- 2. CHECK CONSTRAINTS
 -- ============================================================================
 
--- FinancialYear StartDate & EndDate Check
-ALTER TABLE FinancialYear
+-- SMS_FinancialYear StartDate & EndDate Check
+ALTER TABLE SMS_FinancialYear
     ADD CONSTRAINT CK_FinancialYears_Dates 
     CHECK (StartDate < EndDate);
 
--- ClassSchedules MaxCapacity Check
-ALTER TABLE ClassSchedules
+-- SMS_ClassSchedules MaxCapacity Check
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT CK_ClassSchedules_MaxCapacity 
     CHECK (MaxCapacity > 0);
 
--- StudentInfo Gender Check
-ALTER TABLE StudentInfo
+-- SMS_StudentInfo Gender Check
+ALTER TABLE SMS_StudentInfo
     ADD CONSTRAINT CK_Students_Gender 
     CHECK (Gender IN ('Male', 'Female', 'Other'));
 
--- AuditLogs OperationType Check
-ALTER TABLE AuditLogs
+-- SMS_AuditLogs OperationType Check
+ALTER TABLE SMS_AuditLogs
     ADD CONSTRAINT CK_AuditLogs_OperationType 
     CHECK (OperationType IN ('INSERT', 'UPDATE', 'DELETE'));
 
--- FeeMaster Fee Check
-ALTER TABLE FeeMaster
+-- SMS_FeeMaster Fee Check
+ALTER TABLE SMS_FeeMaster
     ADD CONSTRAINT CK_FeeMaster_Fee
     CHECK (Fee >= 0);
 
--- PaymentDetail Checks
-ALTER TABLE PaymentDetail
+-- SMS_PaymentDetail Checks
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT CK_PaymentDetail_FeePaid
     CHECK (FeePaid >= 0);
 
-ALTER TABLE PaymentDetail
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT CK_PaymentDetail_TotalInstallment
     CHECK (TotalInstallment > 0);
 
-ALTER TABLE PaymentDetail
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT CK_PaymentDetail_PaymentMode
     CHECK (PaymentMode IN ('Cash', 'Card', 'UPI', 'NetBanking', 'Cheque'));
 GO
@@ -496,57 +496,57 @@ GO
 
 -- Enforce only ONE current financial year among active (non-deleted) records
 CREATE UNIQUE INDEX UX_FinancialYears_IsCurrent 
-ON FinancialYear(IsCurrent) 
+ON SMS_FinancialYear(IsCurrent) 
 WHERE IsCurrent = 1 AND IsDeleted = 0;
 
--- Enforce unique FinancialYear name among active records
+-- Enforce unique SMS_FinancialYear name among active records
 CREATE UNIQUE INDEX UX_FinancialYears_FinancialYear 
-ON FinancialYear(FinancialYear) 
+ON SMS_FinancialYear(SMS_FinancialYear) 
 WHERE IsDeleted = 0;
 
 -- Enforce unique DivisionName among active records
 CREATE UNIQUE INDEX UX_Divisions_DivisionName 
-ON DivisionMaster(DivisionName) 
+ON SMS_DivisionMaster(DivisionName) 
 WHERE IsDeleted = 0;
 
 -- Enforce unique ClassName among active records
 CREATE UNIQUE INDEX UX_Classes_ClassName 
-ON ClassMaster(ClassName) 
+ON SMS_ClassMaster(ClassName) 
 WHERE IsDeleted = 0;
 
--- Enforce unique ClassSchedules (FinancialYearId + ClassId + DivisionId) among active records
+-- Enforce unique SMS_ClassSchedules (FinancialYearId + ClassId + DivisionId) among active records
 CREATE UNIQUE INDEX UX_ClassSchedules_Year_Class_Div 
-ON ClassSchedules(FinancialYearId, ClassId, DivisionId) 
+ON SMS_ClassSchedules(FinancialYearId, ClassId, DivisionId) 
 WHERE IsDeleted = 0;
 
 -- Enforce unique GrNo (General Register Number) for students among active records
 CREATE UNIQUE INDEX UX_Students_GrNo 
-ON StudentInfo(GrNo) 
+ON SMS_StudentInfo(GrNo) 
 WHERE IsDeleted = 0 AND GrNo IS NOT NULL;
 
 -- Enforce one student can belong to only one class schedule per financial year among active records
 CREATE UNIQUE INDEX UX_StudentMappings_Year_Student 
-ON StudentMappings(FinancialYearId, StudentId) 
+ON SMS_StudentMappings(FinancialYearId, StudentId) 
 WHERE IsDeleted = 0;
 
 -- Enforce unique RollNo within a ClassSchedule among active records
 CREATE UNIQUE INDEX UX_StudentMappings_Schedule_RollNo 
-ON StudentMappings(ClassScheduleId, RollNo) 
+ON SMS_StudentMappings(ClassScheduleId, RollNo) 
 WHERE IsDeleted = 0;
 
 -- Enforce unique Username among active records
 CREATE UNIQUE INDEX UX_Users_Username 
-ON Users(Username) 
+ON SMS_Users(Username) 
 WHERE IsDeleted = 0;
 
 -- Enforce unique RoleName among active records
 CREATE UNIQUE INDEX UX_Roles_RoleName 
-ON Roles(RoleName) 
+ON SMS_Roles(RoleName) 
 WHERE IsDeleted = 0;
 
 -- Enforce unique mapping between User and Role among active records
 CREATE UNIQUE INDEX UX_UserRoles_User_Role 
-ON UserRoles(UserId, RoleId) 
+ON SMS_UserRoles(UserId, RoleId) 
 WHERE IsDeleted = 0;
 
 
@@ -556,39 +556,40 @@ WHERE IsDeleted = 0;
 
 -- Optimize Student Search by Name
 CREATE NONCLUSTERED INDEX IX_Students_Name 
-ON StudentInfo(LastName, FirstName, MiddleName) 
+ON SMS_StudentInfo(LastName, FirstName, MiddleName) 
 WHERE IsDeleted = 0;
 
 -- Optimize Student Search by Mobile Number
 CREATE NONCLUSTERED INDEX IX_Students_FatherMobileNumber 
-ON StudentInfo(FatherMobileNumber) 
+ON SMS_StudentInfo(FatherMobileNumber) 
 WHERE IsDeleted = 0;
 
 -- Optimize Student Search by Email
 CREATE NONCLUSTERED INDEX IX_Students_EmailAddress 
-ON StudentInfo(EmailAddress) 
+ON SMS_StudentInfo(EmailAddress) 
 WHERE IsDeleted = 0 AND EmailAddress IS NOT NULL;
 
 -- Optimize Dashboard Queries: Student Mappings queries
 CREATE NONCLUSTERED INDEX IX_StudentMappings_ClassScheduleId 
-ON StudentMappings(ClassScheduleId) 
+ON SMS_StudentMappings(ClassScheduleId) 
 INCLUDE (StudentId, RollNo) 
 WHERE IsDeleted = 0;
 
 -- Optimize Dashboard Queries: Student count by Financial Year
 CREATE NONCLUSTERED INDEX IX_StudentMappings_FinancialYearId 
-ON StudentMappings(FinancialYearId) 
+ON SMS_StudentMappings(FinancialYearId) 
 INCLUDE (StudentId) 
 WHERE IsDeleted = 0;
 
 -- Optimize Audit Log Retrieval by Table Name
 CREATE NONCLUSTERED INDEX IX_AuditLogs_TableName_RecordId 
-ON AuditLogs(TableName, RecordId);
+ON SMS_AuditLogs(TableName, RecordId);
 
 -- Optimize Audit Log Retrieval by Date
 CREATE NONCLUSTERED INDEX IX_AuditLogs_CreatedDate 
-ON AuditLogs(CreatedDate);
+ON SMS_AuditLogs(CreatedDate);
 GO
+
 
 
 

@@ -72,4 +72,5 @@ Use the following credentials to access the system:
 *   **Manual GR Entries**: The auto-generated GR function was removed from `usp_Student_Save` in favor of user-inputted GR numbers with server-side validation to block duplicates.
 *   **Fee Mapping**: Link specific semesters (e.g. Sem-1, Sem-2) and fee values to classes. Accessible directly in the sidebar.
 *   **Dynamic Payments**: Redesigned collection slip with searchable student filters, live fee structure populator, and automatic balance calculations.
-*   **Audit Trail**: Every modification (insert, edit, delete) writes to `AuditLogs` using native JSON tracking.
+*   **Audit Trail**: Every modification (insert, edit, delete) writes to `SMS_AuditLogs` using native JSON tracking.
+

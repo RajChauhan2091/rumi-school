@@ -1,6 +1,6 @@
 # School Management System (SMS) - Database Schema & Objects
 
-This document contains the consolidated SQL scripts for creating and seeding the SQL Server database schema. It reflects the updated architecture where the student photo is stored as binary data (`VARBINARY(MAX)`) rather than file paths, and uses the correct `StudentInfo` table mappings.
+This document contains the consolidated SQL scripts for creating and seeding the SQL Server database schema. It reflects the updated architecture where the student photo is stored as binary data (`VARBINARY(MAX)`) rather than file paths, and uses the correct `SMS_StudentInfo` table mappings.
 
 ---
 
@@ -24,10 +24,10 @@ GO
 USE SMS;
 GO
 
--- 1. FinancialYear Table
-CREATE TABLE FinancialYear (
+-- 1. SMS_FinancialYear Table
+CREATE TABLE SMS_FinancialYear (
     FinancialYearId INT IDENTITY(1,1) PRIMARY KEY,
-    FinancialYear VARCHAR(20) NOT NULL,
+    SMS_FinancialYear VARCHAR(20) NOT NULL,
     StartDate DATE NOT NULL,
     EndDate DATE NOT NULL,
     IsCurrent BIT NOT NULL DEFAULT 0,
@@ -42,8 +42,8 @@ CREATE TABLE FinancialYear (
 );
 GO
 
--- 2. DivisionMaster Table
-CREATE TABLE DivisionMaster (
+-- 2. SMS_DivisionMaster Table
+CREATE TABLE SMS_DivisionMaster (
     DivisionId INT IDENTITY(1,1) PRIMARY KEY,
     DivisionName VARCHAR(50) NOT NULL,
     
@@ -57,8 +57,8 @@ CREATE TABLE DivisionMaster (
 );
 GO
 
--- 3. ClassMaster Table
-CREATE TABLE ClassMaster (
+-- 3. SMS_ClassMaster Table
+CREATE TABLE SMS_ClassMaster (
     ClassId INT IDENTITY(1,1) PRIMARY KEY,
     ClassName VARCHAR(50) NOT NULL,
     
@@ -72,8 +72,8 @@ CREATE TABLE ClassMaster (
 );
 GO
 
--- 4. ClassSchedules Table
-CREATE TABLE ClassSchedules (
+-- 4. SMS_ClassSchedules Table
+CREATE TABLE SMS_ClassSchedules (
     ClassScheduleId INT IDENTITY(1,1) PRIMARY KEY,
     ClassId INT NOT NULL,
     DivisionId INT NOT NULL,
@@ -90,8 +90,8 @@ CREATE TABLE ClassSchedules (
 );
 GO
 
--- 5. StudentInfo Table (Stores Binary StudentPhoto)
-CREATE TABLE StudentInfo (
+-- 5. SMS_StudentInfo Table (Stores Binary StudentPhoto)
+CREATE TABLE SMS_StudentInfo (
     StudentId INT IDENTITY(1,1) PRIMARY KEY,
     
     -- Basic Information
@@ -150,8 +150,8 @@ CREATE TABLE StudentInfo (
 );
 GO
 
--- 6. StudentMappings Table
-CREATE TABLE StudentMappings (
+-- 6. SMS_StudentMappings Table
+CREATE TABLE SMS_StudentMappings (
     StudentMappingId INT IDENTITY(1,1) PRIMARY KEY,
     StudentId INT NOT NULL,
     ClassScheduleId INT NOT NULL,
@@ -168,8 +168,8 @@ CREATE TABLE StudentMappings (
 );
 GO
 
--- 7. Users Table
-CREATE TABLE Users (
+-- 7. SMS_Users Table
+CREATE TABLE SMS_Users (
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     Username VARCHAR(50) NOT NULL,
     PasswordHash VARCHAR(255) NOT NULL,
@@ -187,8 +187,8 @@ CREATE TABLE Users (
 );
 GO
 
--- 8. Roles Table
-CREATE TABLE Roles (
+-- 8. SMS_Roles Table
+CREATE TABLE SMS_Roles (
     RoleId INT IDENTITY(1,1) PRIMARY KEY,
     RoleName VARCHAR(50) NOT NULL,
     
@@ -202,8 +202,8 @@ CREATE TABLE Roles (
 );
 GO
 
--- 9. UserRoles Table
-CREATE TABLE UserRoles (
+-- 9. SMS_UserRoles Table
+CREATE TABLE SMS_UserRoles (
     UserRoleId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     RoleId INT NOT NULL,
@@ -218,8 +218,8 @@ CREATE TABLE UserRoles (
 );
 GO
 
--- 10. AuditLogs Table
-CREATE TABLE AuditLogs (
+-- 10. SMS_AuditLogs Table
+CREATE TABLE SMS_AuditLogs (
     AuditLogId INT IDENTITY(1,1) PRIMARY KEY,
     TableName VARCHAR(100) NOT NULL,
     RecordId INT NOT NULL,
@@ -245,62 +245,62 @@ GO
 ## 2. Constraints & Indexes
 
 ```sql
--- ClassSchedules Foreign Keys
-ALTER TABLE ClassSchedules
+-- SMS_ClassSchedules Foreign Keys
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_Classes_ClassId 
-    FOREIGN KEY (ClassId) REFERENCES ClassMaster(ClassId);
+    FOREIGN KEY (ClassId) REFERENCES SMS_ClassMaster(ClassId);
 
-ALTER TABLE ClassSchedules
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_Divisions_DivisionId 
-    FOREIGN KEY (DivisionId) REFERENCES DivisionMaster(DivisionId);
+    FOREIGN KEY (DivisionId) REFERENCES SMS_DivisionMaster(DivisionId);
 
-ALTER TABLE ClassSchedules
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_FinancialYears_FinancialYearId 
-    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (FinancialYearId) REFERENCES SMS_FinancialYear(FinancialYearId);
 
 -- Students Foreign Keys
-ALTER TABLE StudentInfo
+ALTER TABLE SMS_StudentInfo
     ADD CONSTRAINT FK_Students_FinancialYears_AdmissionFinancialYearId 
-    FOREIGN KEY (AdmissionFinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (AdmissionFinancialYearId) REFERENCES SMS_FinancialYear(FinancialYearId);
 
--- StudentMappings Foreign Keys
-ALTER TABLE StudentMappings
+-- SMS_StudentMappings Foreign Keys
+ALTER TABLE SMS_StudentMappings
     ADD CONSTRAINT FK_StudentMappings_Students_StudentId 
-    FOREIGN KEY (StudentId) REFERENCES StudentInfo(StudentId);
+    FOREIGN KEY (StudentId) REFERENCES SMS_StudentInfo(StudentId);
 
-ALTER TABLE StudentMappings
+ALTER TABLE SMS_StudentMappings
     ADD CONSTRAINT FK_StudentMappings_ClassSchedules_ClassScheduleId 
-    FOREIGN KEY (ClassScheduleId) REFERENCES ClassSchedules(ClassScheduleId);
+    FOREIGN KEY (ClassScheduleId) REFERENCES SMS_ClassSchedules(ClassScheduleId);
 
-ALTER TABLE StudentMappings
+ALTER TABLE SMS_StudentMappings
     ADD CONSTRAINT FK_StudentMappings_FinancialYears_FinancialYearId 
-    FOREIGN KEY (FinancialYearId) REFERENCES FinancialYear(FinancialYearId);
+    FOREIGN KEY (FinancialYearId) REFERENCES SMS_FinancialYear(FinancialYearId);
 
--- UserRoles Foreign Keys
-ALTER TABLE UserRoles
+-- SMS_UserRoles Foreign Keys
+ALTER TABLE SMS_UserRoles
     ADD CONSTRAINT FK_UserRoles_Users_UserId 
-    FOREIGN KEY (UserId) REFERENCES Users(UserId);
+    FOREIGN KEY (UserId) REFERENCES SMS_Users(UserId);
 
-ALTER TABLE UserRoles
+ALTER TABLE SMS_UserRoles
     ADD CONSTRAINT FK_UserRoles_Roles_RoleId 
-    FOREIGN KEY (RoleId) REFERENCES Roles(RoleId);
+    FOREIGN KEY (RoleId) REFERENCES SMS_Roles(RoleId);
 
 -- ============================================================================
 -- CHECK CONSTRAINTS
 -- ============================================================================
-ALTER TABLE FinancialYear
+ALTER TABLE SMS_FinancialYear
     ADD CONSTRAINT CK_FinancialYears_Dates 
     CHECK (StartDate < EndDate);
 
-ALTER TABLE ClassSchedules
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT CK_ClassSchedules_MaxCapacity 
     CHECK (MaxCapacity > 0);
 
-ALTER TABLE StudentInfo
+ALTER TABLE SMS_StudentInfo
     ADD CONSTRAINT CK_Students_Gender 
     CHECK (Gender IN ('Male', 'Female', 'Other'));
 
-ALTER TABLE AuditLogs
+ALTER TABLE SMS_AuditLogs
     ADD CONSTRAINT CK_AuditLogs_OperationType 
     CHECK (OperationType IN ('INSERT', 'UPDATE', 'DELETE'));
 
@@ -308,76 +308,76 @@ ALTER TABLE AuditLogs
 -- UNIQUE & PERFORMANCE INDEXES
 -- ============================================================================
 CREATE UNIQUE INDEX UX_FinancialYears_IsCurrent 
-ON FinancialYear(IsCurrent) 
+ON SMS_FinancialYear(IsCurrent) 
 WHERE IsCurrent = 1 AND IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_FinancialYears_FinancialYear 
-ON FinancialYear(FinancialYear) 
+ON SMS_FinancialYear(SMS_FinancialYear) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_Divisions_DivisionName 
-ON DivisionMaster(DivisionName) 
+ON SMS_DivisionMaster(DivisionName) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_Classes_ClassName 
-ON ClassMaster(ClassName) 
+ON SMS_ClassMaster(ClassName) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_ClassSchedules_Year_Class_Div 
-ON ClassSchedules(FinancialYearId, ClassId, DivisionId) 
+ON SMS_ClassSchedules(FinancialYearId, ClassId, DivisionId) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_Students_GrNo 
-ON StudentInfo(GrNo) 
+ON SMS_StudentInfo(GrNo) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_StudentMappings_Year_Student 
-ON StudentMappings(FinancialYearId, StudentId) 
+ON SMS_StudentMappings(FinancialYearId, StudentId) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_StudentMappings_Schedule_RollNo 
-ON StudentMappings(ClassScheduleId, RollNo) 
+ON SMS_StudentMappings(ClassScheduleId, RollNo) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_Users_Username 
-ON Users(Username) 
+ON SMS_Users(Username) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_Roles_RoleName 
-ON Roles(RoleName) 
+ON SMS_Roles(RoleName) 
 WHERE IsDeleted = 0;
 
 CREATE UNIQUE INDEX UX_UserRoles_User_Role 
-ON UserRoles(UserId, RoleId) 
+ON SMS_UserRoles(UserId, RoleId) 
 WHERE IsDeleted = 0;
 
 CREATE NONCLUSTERED INDEX IX_Students_Name 
-ON StudentInfo(LastName, FirstName, MiddleName) 
+ON SMS_StudentInfo(LastName, FirstName, MiddleName) 
 WHERE IsDeleted = 0;
 
 CREATE NONCLUSTERED INDEX IX_Students_FatherMobileNumber 
-ON StudentInfo(FatherMobileNumber) 
+ON SMS_StudentInfo(FatherMobileNumber) 
 WHERE IsDeleted = 0;
 
 CREATE NONCLUSTERED INDEX IX_Students_EmailAddress 
-ON StudentInfo(EmailAddress) 
+ON SMS_StudentInfo(EmailAddress) 
 WHERE IsDeleted = 0 AND EmailAddress IS NOT NULL;
 
 CREATE NONCLUSTERED INDEX IX_StudentMappings_ClassScheduleId 
-ON StudentMappings(ClassScheduleId) 
+ON SMS_StudentMappings(ClassScheduleId) 
 INCLUDE (StudentId, RollNo) 
 WHERE IsDeleted = 0;
 
 CREATE NONCLUSTERED INDEX IX_StudentMappings_FinancialYearId 
-ON StudentMappings(FinancialYearId) 
+ON SMS_StudentMappings(FinancialYearId) 
 INCLUDE (StudentId) 
 WHERE IsDeleted = 0;
 
 CREATE NONCLUSTERED INDEX IX_AuditLogs_TableName_RecordId 
-ON AuditLogs(TableName, RecordId);
+ON SMS_AuditLogs(TableName, RecordId);
 
 CREATE NONCLUSTERED INDEX IX_AuditLogs_CreatedDate 
-ON AuditLogs(CreatedDate);
+ON SMS_AuditLogs(CreatedDate);
 GO
 ```
 
@@ -386,39 +386,39 @@ GO
 ## 3. Seed Data
 
 ```sql
--- 1. Seed Roles
-INSERT INTO Roles (RoleName, CreatedBy)
+-- 1. Seed SMS_Roles
+INSERT INTO SMS_Roles (RoleName, CreatedBy)
 VALUES 
     ('Administrator', 1),
     ('Clerk', 1);
 
 -- 2. Seed Default Admin User
 -- Supply AdminPasswordHash through sqlcmd or your deployment secret store.
-INSERT INTO Users (Username, PasswordHash, FullName, EmailAddress, CreatedBy)
+INSERT INTO SMS_Users (Username, PasswordHash, FullName, EmailAddress, CreatedBy)
 VALUES 
     ('admin', '$(AdminPasswordHash)', 'System Administrator', 'admin@sms.com', 1);
 
 -- 3. Map Admin User to Administrator Role
-INSERT INTO UserRoles (UserId, RoleId, CreatedBy)
+INSERT INTO SMS_UserRoles (UserId, RoleId, CreatedBy)
 VALUES 
     (1, 1, 1);
 
--- 4. Seed FinancialYear
-INSERT INTO FinancialYear (FinancialYear, StartDate, EndDate, IsCurrent, CreatedBy)
+-- 4. Seed SMS_FinancialYear
+INSERT INTO SMS_FinancialYear (SMS_FinancialYear, StartDate, EndDate, IsCurrent, CreatedBy)
 VALUES 
     ('2025-2026', '2025-04-01', '2026-03-31', 0, 1),
     ('2026-2027', '2026-04-01', '2027-03-31', 1, 1);
 
--- 5. Seed DivisionMaster
-INSERT INTO DivisionMaster (DivisionName, CreatedBy)
+-- 5. Seed SMS_DivisionMaster
+INSERT INTO SMS_DivisionMaster (DivisionName, CreatedBy)
 VALUES 
     ('A', 1),
     ('B', 1),
     ('C', 1),
     ('D', 1);
 
--- 6. Seed ClassMaster
-INSERT INTO ClassMaster (ClassName, CreatedBy)
+-- 6. Seed SMS_ClassMaster
+INSERT INTO SMS_ClassMaster (ClassName, CreatedBy)
 VALUES 
     ('Nursery', 1),
     ('Jr KG', 1),
@@ -450,26 +450,26 @@ CREATE FUNCTION fn_GenerateGrNo (
 RETURNS VARCHAR(20)
 AS
 BEGIN
-    DECLARE @FinancialYear VARCHAR(20);
+    DECLARE @SMS_FinancialYear VARCHAR(20);
     DECLARE @Prefix VARCHAR(10);
     DECLARE @NextSequence INT = 1;
     DECLARE @NextGrNo VARCHAR(20);
 
-    SELECT @FinancialYear = FinancialYear 
-    FROM FinancialYear 
+    SELECT @SMS_FinancialYear = SMS_FinancialYear 
+    FROM SMS_FinancialYear 
     WHERE FinancialYearId = @AdmissionFinancialYearId;
 
-    IF @FinancialYear IS NULL
+    IF @SMS_FinancialYear IS NULL
         RETURN NULL;
 
     -- GR-2627- (From '2026-2027')
     SET @Prefix = 'GR-' 
-                  + SUBSTRING(@FinancialYear, 3, 2) 
-                  + SUBSTRING(@FinancialYear, 8, 2) 
+                  + SUBSTRING(@SMS_FinancialYear, 3, 2) 
+                  + SUBSTRING(@SMS_FinancialYear, 8, 2) 
                   + '-';
 
     SELECT @NextSequence = ISNULL(MAX(CAST(SUBSTRING(GrNo, 9, 4) AS INT)), 0) + 1
-    FROM StudentInfo
+    FROM SMS_StudentInfo
     WHERE GrNo LIKE @Prefix + '%';
 
     SET @NextGrNo = @Prefix + RIGHT('0000' + CAST(@NextSequence AS VARCHAR), 4);
@@ -488,7 +488,7 @@ SELECT
     cs.DivisionId,
     d.DivisionName,
     cs.FinancialYearId,
-    fy.FinancialYear,
+    fy.SMS_FinancialYear,
     fy.IsCurrent AS IsCurrentFinancialYear,
     cs.MaxCapacity,
     cs.IsActive,
@@ -496,10 +496,10 @@ SELECT
     cs.CreatedBy,
     cs.UpdatedDate,
     cs.UpdatedBy
-FROM ClassSchedules cs
-INNER JOIN ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0 AND c.IsActive = 1
-INNER JOIN DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0 AND d.IsActive = 1
-INNER JOIN FinancialYear fy ON cs.FinancialYearId = fy.FinancialYearId AND fy.IsDeleted = 0 AND fy.IsActive = 1
+FROM SMS_ClassSchedules cs
+INNER JOIN SMS_ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0 AND c.IsActive = 1
+INNER JOIN SMS_DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0 AND d.IsActive = 1
+INNER JOIN SMS_FinancialYear fy ON cs.FinancialYearId = fy.FinancialYearId AND fy.IsDeleted = 0 AND fy.IsActive = 1
 WHERE cs.IsDeleted = 0 AND cs.IsActive = 1;
 GO
 
@@ -540,7 +540,7 @@ SELECT
     s.EmergencyContactNumber,
     s.PreviousSchoolName,
     s.AdmissionFinancialYearId,
-    fy_adm.FinancialYear AS AdmissionFinancialYear,
+    fy_adm.SMS_FinancialYear AS AdmissionFinancialYear,
     s.EmailAddress,
     s.IsActive AS IsStudentActive,
     
@@ -553,15 +553,15 @@ SELECT
     cs.DivisionId,
     d.DivisionName,
     sm.FinancialYearId AS MappingFinancialYearId,
-    fy_map.FinancialYear AS MappingFinancialYear,
+    fy_map.SMS_FinancialYear AS MappingFinancialYear,
     fy_map.IsCurrent AS IsCurrentMappingYear
-FROM StudentInfo s
-INNER JOIN FinancialYear fy_adm ON s.AdmissionFinancialYearId = fy_adm.FinancialYearId AND fy_adm.IsDeleted = 0
-LEFT JOIN StudentMappings sm ON s.StudentId = sm.StudentId AND sm.IsDeleted = 0 AND sm.IsActive = 1
-LEFT JOIN ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0 AND cs.IsActive = 1
-LEFT JOIN ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
-LEFT JOIN DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
-LEFT JOIN FinancialYear fy_map ON sm.FinancialYearId = fy_map.FinancialYearId AND fy_map.IsDeleted = 0
+FROM SMS_StudentInfo s
+INNER JOIN SMS_FinancialYear fy_adm ON s.AdmissionFinancialYearId = fy_adm.FinancialYearId AND fy_adm.IsDeleted = 0
+LEFT JOIN SMS_StudentMappings sm ON s.StudentId = sm.StudentId AND sm.IsDeleted = 0 AND sm.IsActive = 1
+LEFT JOIN SMS_ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0 AND cs.IsActive = 1
+LEFT JOIN SMS_ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
+LEFT JOIN SMS_DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
+LEFT JOIN SMS_FinancialYear fy_map ON sm.FinancialYearId = fy_map.FinancialYearId AND fy_map.IsDeleted = 0
 WHERE s.IsDeleted = 0;
 GO
 ```
@@ -586,9 +586,9 @@ BEGIN
         u.FullName,
         u.EmailAddress,
         r.RoleName
-    FROM Users u
-    LEFT JOIN UserRoles ur ON u.UserId = ur.UserId AND ur.IsDeleted = 0
-    LEFT JOIN Roles r ON ur.RoleId = r.RoleId AND r.IsDeleted = 0
+    FROM SMS_Users u
+    LEFT JOIN SMS_UserRoles ur ON u.UserId = ur.UserId AND ur.IsDeleted = 0
+    LEFT JOIN SMS_Roles r ON ur.RoleId = r.RoleId AND r.IsDeleted = 0
     WHERE u.Username = @Username AND u.IsActive = 1 AND u.IsDeleted = 0;
 END;
 GO
@@ -645,7 +645,7 @@ BEGIN
         IF @ClassScheduleId IS NOT NULL AND @ClassScheduleId > 0
         BEGIN
             SELECT @MappingFinancialYearId = FinancialYearId 
-            FROM ClassSchedules 
+            FROM SMS_ClassSchedules 
             WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0 AND IsActive = 1;
             IF @MappingFinancialYearId IS NULL
             BEGIN
@@ -660,7 +660,7 @@ BEGIN
         BEGIN
             SET @OperationType = 'INSERT';
             SET @GrNo = dbo.fn_GenerateGrNo(@AdmissionFinancialYearId);
-            INSERT INTO StudentInfo (
+            INSERT INTO SMS_StudentInfo (
                 GrNo, AdmissionDate, FirstName, MiddleName, LastName, DateOfBirth, Gender, StudentPhoto,
                 PlaceOfBirth, Nationality, BloodGroup, Category, Religion, AadhaarNumber,
                 AddressLine1, AddressLine2, City, State, Country, PinCode,
@@ -680,7 +680,7 @@ BEGIN
         END
         ELSE
         BEGIN
-            SELECT @GrNo = GrNo FROM StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0;
+            SELECT @GrNo = GrNo FROM SMS_StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0;
             IF @GrNo IS NULL
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
@@ -689,8 +689,8 @@ BEGIN
                 SELECT @StatusCode AS StatusCode, @Message AS Message;
                 RETURN;
             END
-            SET @OldValues = (SELECT * FROM StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-            UPDATE StudentInfo
+            SET @OldValues = (SELECT * FROM SMS_StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            UPDATE SMS_StudentInfo
             SET AdmissionDate = @AdmissionDate,
                 FirstName = @FirstName,
                 MiddleName = @MiddleName,
@@ -725,9 +725,9 @@ BEGIN
                 UpdatedBy = @PerformedBy
             WHERE StudentId = @StudentId;
         END
-        SET @NewValues = (SELECT * FROM StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('StudentInfo', @StudentId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        SET @NewValues = (SELECT * FROM SMS_StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_StudentInfo', @StudentId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
         IF @ClassScheduleId IS NOT NULL AND @ClassScheduleId > 0
         BEGIN
             DECLARE @MappingId INT = NULL;
@@ -735,28 +735,28 @@ BEGIN
             DECLARE @MapNewValues NVARCHAR(MAX) = NULL;
             DECLARE @MapOpType VARCHAR(10) = 'UPDATE';
             SELECT @MappingId = StudentMappingId
-            FROM StudentMappings
+            FROM SMS_StudentMappings
             WHERE StudentId = @StudentId AND FinancialYearId = @MappingFinancialYearId AND IsDeleted = 0;
             IF @MappingId IS NULL
             BEGIN
                 SET @MapOpType = 'INSERT';
-                INSERT INTO StudentMappings (StudentId, ClassScheduleId, FinancialYearId, RollNo, CreatedBy)
+                INSERT INTO SMS_StudentMappings (StudentId, ClassScheduleId, FinancialYearId, RollNo, CreatedBy)
                 VALUES (@StudentId, @ClassScheduleId, @MappingFinancialYearId, @RollNo, @PerformedBy);
                 SET @MappingId = SCOPE_IDENTITY();
             END
             ELSE
             BEGIN
-                SET @MapOldValues = (SELECT * FROM StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-                UPDATE StudentMappings
+                SET @MapOldValues = (SELECT * FROM SMS_StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+                UPDATE SMS_StudentMappings
                 SET ClassScheduleId = @ClassScheduleId,
                     RollNo = @RollNo,
                     UpdatedDate = SYSUTCDATETIME(),
                     UpdatedBy = @PerformedBy
                 WHERE StudentMappingId = @MappingId;
             END
-            SET @MapNewValues = (SELECT * FROM StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-            INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-            VALUES ('StudentMappings', @MappingId, @MapOpType, @MapOldValues, @MapNewValues, @PerformedBy, @IPAddress, @PerformedBy);
+            SET @MapNewValues = (SELECT * FROM SMS_StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+            VALUES ('SMS_StudentMappings', @MappingId, @MapOpType, @MapOldValues, @MapNewValues, @PerformedBy, @IPAddress, @PerformedBy);
         END
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message, @StudentId AS StudentId, @GrNo AS GrNo;
@@ -832,7 +832,7 @@ BEGIN
     DECLARE @StatusCode INT = 200;
     DECLARE @Message VARCHAR(255) = 'Success';
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Student not found.';
@@ -841,7 +841,7 @@ BEGIN
         END
 
         -- Check active mappings dependency
-        IF EXISTS (SELECT 1 FROM StudentMappings WHERE StudentId = @StudentId AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_StudentMappings WHERE StudentId = @StudentId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete Student as they have active class mappings. Remove class mappings first.';
@@ -850,16 +850,16 @@ BEGIN
         END
 
         BEGIN TRANSACTION;
-        SET @OldValues = (SELECT * FROM StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-        UPDATE StudentInfo
+        SET @OldValues = (SELECT * FROM SMS_StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        UPDATE SMS_StudentInfo
         SET IsDeleted = 1,
             IsActive = 0,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE StudentId = @StudentId;
-        SET @NewValues = (SELECT * FROM StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('StudentInfo', @StudentId, 'DELETE', @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        SET @NewValues = (SELECT * FROM SMS_StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_StudentInfo', @StudentId, 'DELETE', @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
     END TRY
@@ -881,8 +881,8 @@ BEGIN
     
     -- Result Set 1: Total Students count (in mappings for specific year + overall registered)
     SELECT 
-        (SELECT COUNT(1) FROM StudentInfo WHERE IsDeleted = 0 AND IsActive = 1) AS TotalRegisteredStudents,
-        (SELECT COUNT(1) FROM StudentMappings WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS ActiveMappedStudents;
+        (SELECT COUNT(1) FROM SMS_StudentInfo WHERE IsDeleted = 0 AND IsActive = 1) AS TotalRegisteredStudents,
+        (SELECT COUNT(1) FROM SMS_StudentMappings WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS ActiveMappedStudents;
 
     -- Result Set 2: Class Allocations summary
     SELECT 
@@ -891,10 +891,10 @@ BEGIN
         d.DivisionName,
         cs.MaxCapacity,
         COUNT(sm.StudentMappingId) AS AllocatedCount
-    FROM ClassSchedules cs
-    INNER JOIN ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
-    INNER JOIN DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
-    LEFT JOIN StudentMappings sm ON cs.ClassScheduleId = sm.ClassScheduleId AND sm.IsDeleted = 0 AND sm.IsActive = 1
+    FROM SMS_ClassSchedules cs
+    INNER JOIN SMS_ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
+    INNER JOIN SMS_DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
+    LEFT JOIN SMS_StudentMappings sm ON cs.ClassScheduleId = sm.ClassScheduleId AND sm.IsDeleted = 0 AND sm.IsActive = 1
     WHERE cs.FinancialYearId = @FinancialYearId AND cs.IsDeleted = 0 AND cs.IsActive = 1
     GROUP BY cs.ClassScheduleId, c.ClassName, d.DivisionName, cs.MaxCapacity
     ORDER BY c.ClassName, d.DivisionName;
@@ -911,8 +911,8 @@ The following tables and constraints were introduced in Phase 2 to manage fee st
 ### 4.1. Tables Creation
 
 ```sql
--- 11. SemesterMaster Table
-CREATE TABLE SemesterMaster (
+-- 11. SMS_SemesterMaster Table
+CREATE TABLE SMS_SemesterMaster (
     SemesterID INT IDENTITY(1,1) PRIMARY KEY,
     SemesterName NVARCHAR(30) NOT NULL,
     CreatedDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -923,8 +923,8 @@ CREATE TABLE SemesterMaster (
     IsDeleted BIT NOT NULL DEFAULT 0
 );
 
--- 12. FeeMaster Table
-CREATE TABLE FeeMaster (
+-- 12. SMS_FeeMaster Table
+CREATE TABLE SMS_FeeMaster (
     FeeID INT IDENTITY(1,1) PRIMARY KEY,
     Fee DECIMAL(18,2) NOT NULL,
     CreatedDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -935,8 +935,8 @@ CREATE TABLE FeeMaster (
     IsDeleted BIT NOT NULL DEFAULT 0
 );
 
--- 13. FeeDetail Table
-CREATE TABLE FeeDetail (
+-- 13. SMS_FeeDetail Table
+CREATE TABLE SMS_FeeDetail (
     FeeDetailID INT IDENTITY(1,1) PRIMARY KEY,
     FeeID INT NOT NULL,
     ClassID INT NOT NULL,
@@ -950,8 +950,8 @@ CREATE TABLE FeeDetail (
     IsDeleted BIT NOT NULL DEFAULT 0
 );
 
--- 14. PaymentDetail Table
-CREATE TABLE PaymentDetail (
+-- 14. SMS_PaymentDetail Table
+CREATE TABLE SMS_PaymentDetail (
     PaymentDetailID INT IDENTITY(1,1) PRIMARY KEY,
     StudentID INT NOT NULL,
     FinancialYearID INT NOT NULL,
@@ -971,8 +971,8 @@ CREATE TABLE PaymentDetail (
     IsDeleted BIT NOT NULL DEFAULT 0
 );
 
--- 15. StaffTypeMaster Table
-CREATE TABLE StaffTypeMaster (
+-- 15. SMS_StaffTypeMaster Table
+CREATE TABLE SMS_StaffTypeMaster (
     StaffTypeID INT IDENTITY(1,1) PRIMARY KEY,
     StaffType NVARCHAR(50) NOT NULL,
     CreatedDate DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -983,8 +983,8 @@ CREATE TABLE StaffTypeMaster (
     IsDeleted BIT NOT NULL DEFAULT 0
 );
 
--- 16. StaffDetail Table
-CREATE TABLE StaffDetail (
+-- 16. SMS_StaffDetail Table
+CREATE TABLE SMS_StaffDetail (
     StaffID INT IDENTITY(1,1) PRIMARY KEY,
     StaffFirstName NVARCHAR(50) NOT NULL,
     StaffMiddleName NVARCHAR(50) NULL,
@@ -1012,36 +1012,36 @@ CREATE TABLE StaffDetail (
 ### 4.2. Constraints
 
 ```sql
--- ClassSchedules -> StaffDetail
-ALTER TABLE ClassSchedules
+-- SMS_ClassSchedules -> SMS_StaffDetail
+ALTER TABLE SMS_ClassSchedules
     ADD CONSTRAINT FK_ClassSchedules_StaffDetail_StaffId
-    FOREIGN KEY (StaffId) REFERENCES StaffDetail(StaffID);
+    FOREIGN KEY (StaffId) REFERENCES SMS_StaffDetail(StaffID);
 
--- FeeDetail Constraints
-ALTER TABLE FeeDetail
-    ADD CONSTRAINT FK_FeeDetail_FeeMaster_FeeId FOREIGN KEY (FeeID) REFERENCES FeeMaster(FeeID);
-ALTER TABLE FeeDetail
-    ADD CONSTRAINT FK_FeeDetail_ClassMaster_ClassId FOREIGN KEY (ClassID) REFERENCES ClassMaster(ClassId);
-ALTER TABLE FeeDetail
-    ADD CONSTRAINT FK_FeeDetail_FinancialYears_FinancialYearId FOREIGN KEY (FinancialYearID) REFERENCES FinancialYear(FinancialYearId);
-ALTER TABLE FeeDetail
-    ADD CONSTRAINT FK_FeeDetail_SemesterMaster_SemesterId FOREIGN KEY (SemesterID) REFERENCES SemesterMaster(SemesterID);
+-- SMS_FeeDetail Constraints
+ALTER TABLE SMS_FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_FeeMaster_FeeId FOREIGN KEY (FeeID) REFERENCES SMS_FeeMaster(FeeID);
+ALTER TABLE SMS_FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_ClassMaster_ClassId FOREIGN KEY (ClassID) REFERENCES SMS_ClassMaster(ClassId);
+ALTER TABLE SMS_FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_FinancialYears_FinancialYearId FOREIGN KEY (FinancialYearID) REFERENCES SMS_FinancialYear(FinancialYearId);
+ALTER TABLE SMS_FeeDetail
+    ADD CONSTRAINT FK_FeeDetail_SemesterMaster_SemesterId FOREIGN KEY (SemesterID) REFERENCES SMS_SemesterMaster(SemesterID);
 
--- PaymentDetail Constraints
-ALTER TABLE PaymentDetail
-    ADD CONSTRAINT FK_PaymentDetail_Students_StudentId FOREIGN KEY (StudentID) REFERENCES StudentInfo(StudentId);
-ALTER TABLE PaymentDetail
-    ADD CONSTRAINT FK_PaymentDetail_FinancialYears_FinancialYearId FOREIGN KEY (FinancialYearID) REFERENCES FinancialYear(FinancialYearId);
-ALTER TABLE PaymentDetail
-    ADD CONSTRAINT FK_PaymentDetail_FeeMaster_FeeId FOREIGN KEY (FeeID) REFERENCES FeeMaster(FeeID);
-ALTER TABLE PaymentDetail
-    ADD CONSTRAINT FK_PaymentDetail_SemesterMaster_SemesterId FOREIGN KEY (SemesterID) REFERENCES SemesterMaster(SemesterID);
-ALTER TABLE PaymentDetail
+-- SMS_PaymentDetail Constraints
+ALTER TABLE SMS_PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_Students_StudentId FOREIGN KEY (StudentID) REFERENCES SMS_StudentInfo(StudentId);
+ALTER TABLE SMS_PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_FinancialYears_FinancialYearId FOREIGN KEY (FinancialYearID) REFERENCES SMS_FinancialYear(FinancialYearId);
+ALTER TABLE SMS_PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_FeeMaster_FeeId FOREIGN KEY (FeeID) REFERENCES SMS_FeeMaster(FeeID);
+ALTER TABLE SMS_PaymentDetail
+    ADD CONSTRAINT FK_PaymentDetail_SemesterMaster_SemesterId FOREIGN KEY (SemesterID) REFERENCES SMS_SemesterMaster(SemesterID);
+ALTER TABLE SMS_PaymentDetail
     ADD CONSTRAINT CK_PaymentDetail_PaymentMode CHECK (PaymentMode IN ('Cash', 'Card', 'UPI', 'NetBanking', 'Cheque'));
 
--- StaffDetail Constraints
-ALTER TABLE StaffDetail
-    ADD CONSTRAINT FK_StaffDetail_StaffTypeMaster_StaffType FOREIGN KEY (StaffType) REFERENCES StaffTypeMaster(StaffTypeID);
+-- SMS_StaffDetail Constraints
+ALTER TABLE SMS_StaffDetail
+    ADD CONSTRAINT FK_StaffDetail_StaffTypeMaster_StaffType FOREIGN KEY (StaffType) REFERENCES SMS_StaffTypeMaster(StaffTypeID);
 
 ---
 
@@ -1078,8 +1078,8 @@ SELECT
     s.UpdatedBy,
     s.IsActive,
     s.IsDeleted
-FROM StaffDetail s
-INNER JOIN StaffTypeMaster st ON s.StaffType = st.StaffTypeID
+FROM SMS_StaffDetail s
+INNER JOIN SMS_StaffTypeMaster st ON s.StaffType = st.StaffTypeID
 WHERE s.IsDeleted = 0;
 GO
 
@@ -1094,16 +1094,16 @@ SELECT
     fd.ClassID,
     c.ClassName,
     fd.FinancialYearID,
-    fy.FinancialYear,
+    fy.SMS_FinancialYear,
     fy.IsCurrent AS IsCurrentFinancialYear,
     fd.SemesterID,
     sem.SemesterName,
     fd.IsActive
-FROM FeeDetail fd
-INNER JOIN FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
-INNER JOIN ClassMaster c ON fd.ClassID = c.ClassId AND c.IsDeleted = 0
-INNER JOIN FinancialYear fy ON fd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
-INNER JOIN SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
+FROM SMS_FeeDetail fd
+INNER JOIN SMS_FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
+INNER JOIN SMS_ClassMaster c ON fd.ClassID = c.ClassId AND c.IsDeleted = 0
+INNER JOIN SMS_FinancialYear fy ON fd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
+INNER JOIN SMS_SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
 WHERE fd.IsDeleted = 0;
 GO
 
@@ -1117,7 +1117,7 @@ SELECT
     (s.FirstName + ' ' + ISNULL(s.MiddleName + ' ', '') + s.LastName) AS StudentFullName,
     s.GrNo,
     pd.FinancialYearID,
-    fy.FinancialYear,
+    fy.SMS_FinancialYear,
     pd.FeeID,
     fm.Fee AS TotalFeeAmount,
     pd.PaymentMode,
@@ -1131,11 +1131,11 @@ SELECT
     pd.CreatedDate,
     pd.IsActive,
     pd.IsDeleted
-FROM PaymentDetail pd
-INNER JOIN StudentInfo s ON pd.StudentID = s.StudentId AND s.IsDeleted = 0
-INNER JOIN FinancialYear fy ON pd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
-INNER JOIN FeeMaster fm ON pd.FeeID = fm.FeeID AND fm.IsDeleted = 0
-INNER JOIN SemesterMaster sem ON pd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
+FROM SMS_PaymentDetail pd
+INNER JOIN SMS_StudentInfo s ON pd.StudentID = s.StudentId AND s.IsDeleted = 0
+INNER JOIN SMS_FinancialYear fy ON pd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
+INNER JOIN SMS_FeeMaster fm ON pd.FeeID = fm.FeeID AND fm.IsDeleted = 0
+INNER JOIN SMS_SemesterMaster sem ON pd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
 WHERE pd.IsDeleted = 0;
 GO
 ```
@@ -1270,7 +1270,7 @@ CREATE PROCEDURE usp_PaymentDetail_Delete
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Soft-delete transaction: Set IsDeleted = 1, write AuditLogs.
+    -- Soft-delete transaction: Set IsDeleted = 1, write SMS_AuditLogs.
 END;
 GO
 
@@ -1283,8 +1283,9 @@ AS
 BEGIN
     SET NOCOUNT ON;
     -- Selects students with outstanding fee balances for a given Semester and Class,
-    -- joining with StaffDetail to retrieve the class teacher's full name (StaffName).
+    -- joining with SMS_StaffDetail to retrieve the class teacher's full name (StaffName).
 END;
 GO
 ```
+
 

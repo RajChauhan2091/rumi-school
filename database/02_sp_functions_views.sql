@@ -8,31 +8,31 @@ CREATE FUNCTION fn_GenerateGrNo (
 RETURNS VARCHAR(20)
 AS
 BEGIN
-    DECLARE @FinancialYear VARCHAR(20);
+    DECLARE @SMS_FinancialYear VARCHAR(20);
     DECLARE @Prefix VARCHAR(10);
     DECLARE @NextSequence INT = 1;
     DECLARE @NextGrNo VARCHAR(20);
 
     -- 1. Fetch the Financial Year Name (using the new column and table name)
-    SELECT @FinancialYear = FinancialYear 
-    FROM FinancialYear 
+    SELECT @SMS_FinancialYear = SMS_FinancialYear 
+    FROM SMS_FinancialYear 
     WHERE FinancialYearId = @AdmissionFinancialYearId;
 
     -- If the financial year is not found, return NULL
-    IF @FinancialYear IS NULL
+    IF @SMS_FinancialYear IS NULL
         RETURN NULL;
 
     -- 2. Extract prefix: GR-{StartYearLastTwoDigits}{EndYearLastTwoDigits}-
     -- Example: '2026-2027' -> 'GR-2627-'
     -- Format: 'yyyy-yyyy' -> Length = 9. StartYear starts at index 1, EndYear starts at index 6.
     SET @Prefix = 'GR-' 
-                  + SUBSTRING(@FinancialYear, 3, 2) 
-                  + SUBSTRING(@FinancialYear, 8, 2) 
+                  + SUBSTRING(@SMS_FinancialYear, 3, 2) 
+                  + SUBSTRING(@SMS_FinancialYear, 8, 2) 
                   + '-';
 
-    -- 3. Determine the next sequence number by searching the StudentInfo table
+    -- 3. Determine the next sequence number by searching the SMS_StudentInfo table
     SELECT @NextSequence = ISNULL(MAX(CAST(SUBSTRING(GrNo, 9, 4) AS INT)), 0) + 1
-    FROM StudentInfo
+    FROM SMS_StudentInfo
     WHERE GrNo LIKE @Prefix + '%';
 
     -- 4. Format: Prefix + 4-digit zero-padded sequence (e.g., GR-2627-0001)
@@ -63,7 +63,7 @@ SELECT
     cs.DivisionId,
     d.DivisionName,
     cs.FinancialYearId,
-    fy.FinancialYear,
+    fy.SMS_FinancialYear,
     fy.IsCurrent AS IsCurrentFinancialYear,
     cs.MaxCapacity,
     cs.StaffId,
@@ -73,11 +73,11 @@ SELECT
     cs.CreatedBy,
     cs.UpdatedDate,
     cs.UpdatedBy
-FROM ClassSchedules cs
-INNER JOIN ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0 AND c.IsActive = 1
-INNER JOIN DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0 AND d.IsActive = 1
-INNER JOIN FinancialYear fy ON cs.FinancialYearId = fy.FinancialYearId AND fy.IsDeleted = 0 AND fy.IsActive = 1
-LEFT JOIN StaffDetail s ON cs.StaffId = s.StaffID AND s.IsDeleted = 0
+FROM SMS_ClassSchedules cs
+INNER JOIN SMS_ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0 AND c.IsActive = 1
+INNER JOIN SMS_DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0 AND d.IsActive = 1
+INNER JOIN SMS_FinancialYear fy ON cs.FinancialYearId = fy.FinancialYearId AND fy.IsDeleted = 0 AND fy.IsActive = 1
+LEFT JOIN SMS_StaffDetail s ON cs.StaffId = s.StaffID AND s.IsDeleted = 0
 WHERE cs.IsDeleted = 0 AND cs.IsActive = 1;
 GO
 
@@ -126,7 +126,7 @@ SELECT
     s.EmergencyContactNumber,
     s.PreviousSchoolName,
     s.AdmissionFinancialYearId,
-    fy_adm.FinancialYear AS AdmissionFinancialYear,
+    fy_adm.SMS_FinancialYear AS AdmissionFinancialYear,
     s.EmailAddress,
     s.IsActive AS IsStudentActive,
     
@@ -139,15 +139,15 @@ SELECT
     cs.DivisionId,
     d.DivisionName,
     sm.FinancialYearId AS MappingFinancialYearId,
-    fy_map.FinancialYear AS MappingFinancialYear,
+    fy_map.SMS_FinancialYear AS MappingFinancialYear,
     fy_map.IsCurrent AS IsCurrentMappingYear
-FROM StudentInfo s
-INNER JOIN FinancialYear fy_adm ON s.AdmissionFinancialYearId = fy_adm.FinancialYearId AND fy_adm.IsDeleted = 0
-LEFT JOIN StudentMappings sm ON s.StudentId = sm.StudentId AND sm.IsDeleted = 0 AND sm.IsActive = 1
-LEFT JOIN ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0 AND cs.IsActive = 1
-LEFT JOIN ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
-LEFT JOIN DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
-LEFT JOIN FinancialYear fy_map ON sm.FinancialYearId = fy_map.FinancialYearId AND fy_map.IsDeleted = 0
+FROM SMS_StudentInfo s
+INNER JOIN SMS_FinancialYear fy_adm ON s.AdmissionFinancialYearId = fy_adm.FinancialYearId AND fy_adm.IsDeleted = 0
+LEFT JOIN SMS_StudentMappings sm ON s.StudentId = sm.StudentId AND sm.IsDeleted = 0 AND sm.IsActive = 1
+LEFT JOIN SMS_ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0 AND cs.IsActive = 1
+LEFT JOIN SMS_ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
+LEFT JOIN SMS_DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
+LEFT JOIN SMS_FinancialYear fy_map ON sm.FinancialYearId = fy_map.FinancialYearId AND fy_map.IsDeleted = 0
 WHERE s.IsDeleted = 0;
 GO
 
@@ -169,7 +169,7 @@ BEGIN
 
     BEGIN TRY
         SELECT @UserId = UserId
-        FROM Users
+        FROM SMS_Users
         WHERE Username = @Username AND IsDeleted = 0 AND IsActive = 1;
 
         IF @UserId IS NULL
@@ -185,11 +185,11 @@ BEGIN
         DECLARE @OldValues NVARCHAR(MAX);
         SET @OldValues = (
             SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
-            FROM Users WHERE UserId = @UserId
+            FROM SMS_Users WHERE UserId = @UserId
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        UPDATE Users
+        UPDATE SMS_Users
         SET LastLoginDate = SYSUTCDATETIME(),
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @UserId
@@ -198,12 +198,12 @@ BEGIN
         DECLARE @NewValues NVARCHAR(MAX);
         SET @NewValues = (
             SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
-            FROM Users WHERE UserId = @UserId
+            FROM SMS_Users WHERE UserId = @UserId
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('Users', @UserId, 'UPDATE', @OldValues, @NewValues, @UserId, @IPAddress, @UserId);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_Users', @UserId, 'UPDATE', @OldValues, @NewValues, @UserId, @IPAddress, @UserId);
 
         COMMIT TRANSACTION;
 
@@ -216,7 +216,7 @@ BEGIN
             FullName,
             EmailAddress,
             LastLoginDate
-        FROM Users
+        FROM SMS_Users
         WHERE UserId = @UserId;
 
     END TRY
@@ -241,7 +241,7 @@ BEGIN
     DECLARE @Message VARCHAR(255) = 'Success';
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM Users WHERE UserId = @UserId AND IsDeleted = 0 AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM SMS_Users WHERE UserId = @UserId AND IsDeleted = 0 AND IsActive = 1)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'User not found.';
@@ -254,11 +254,11 @@ BEGIN
         DECLARE @OldValues NVARCHAR(MAX);
         SET @OldValues = (
             SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
-            FROM Users WHERE UserId = @UserId
+            FROM SMS_Users WHERE UserId = @UserId
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        UPDATE Users
+        UPDATE SMS_Users
         SET PasswordHash = @NewPasswordHash,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
@@ -267,12 +267,12 @@ BEGIN
         DECLARE @NewValues NVARCHAR(MAX);
         SET @NewValues = (
             SELECT UserId, Username, FullName, EmailAddress, LastLoginDate, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted
-            FROM Users WHERE UserId = @UserId
+            FROM SMS_Users WHERE UserId = @UserId
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('Users', @UserId, 'UPDATE', @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_Users', @UserId, 'UPDATE', @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -293,7 +293,7 @@ BEGIN
     SET NOCOUNT ON;
     SELECT 
         FinancialYearId,
-        FinancialYear,
+        SMS_FinancialYear,
         StartDate,
         EndDate,
         IsCurrent,
@@ -303,7 +303,7 @@ BEGIN
         UpdatedDate,
         UpdatedBy,
         IsDeleted
-    FROM FinancialYear
+    FROM SMS_FinancialYear
     WHERE IsDeleted = 0
     ORDER BY StartDate DESC;
 END;
@@ -316,7 +316,7 @@ BEGIN
     SET NOCOUNT ON;
     SELECT 
         FinancialYearId,
-        FinancialYear,
+        SMS_FinancialYear,
         StartDate,
         EndDate,
         IsCurrent,
@@ -326,14 +326,14 @@ BEGIN
         UpdatedDate,
         UpdatedBy,
         IsDeleted
-    FROM FinancialYear
+    FROM SMS_FinancialYear
     WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0;
 END;
 GO
 
 CREATE PROCEDURE usp_FinancialYear_Save
     @FinancialYearId INT,
-    @FinancialYear VARCHAR(20),
+    @SMS_FinancialYear VARCHAR(20),
     @StartDate DATE,
     @EndDate DATE,
     @IsCurrent BIT,
@@ -357,7 +357,7 @@ BEGIN
             RETURN;
         END
 
-        IF EXISTS (SELECT 1 FROM FinancialYear WHERE FinancialYear = @FinancialYear AND FinancialYearId <> ISNULL(@FinancialYearId, 0) AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_FinancialYear WHERE SMS_FinancialYear = @SMS_FinancialYear AND FinancialYearId <> ISNULL(@FinancialYearId, 0) AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Financial Year name already exists.';
@@ -369,7 +369,7 @@ BEGIN
 
         IF @IsCurrent = 1
         BEGIN
-            UPDATE FinancialYear
+            UPDATE SMS_FinancialYear
             SET IsCurrent = 0,
                 UpdatedDate = SYSUTCDATETIME(),
                 UpdatedBy = @PerformedBy
@@ -380,14 +380,14 @@ BEGIN
         BEGIN
             SET @OperationType = 'INSERT';
 
-            INSERT INTO FinancialYear (FinancialYear, StartDate, EndDate, IsCurrent, CreatedBy)
-            VALUES (@FinancialYear, @StartDate, @EndDate, @IsCurrent, @PerformedBy);
+            INSERT INTO SMS_FinancialYear (SMS_FinancialYear, StartDate, EndDate, IsCurrent, CreatedBy)
+            VALUES (@SMS_FinancialYear, @StartDate, @EndDate, @IsCurrent, @PerformedBy);
 
             SET @FinancialYearId = SCOPE_IDENTITY();
         END
         ELSE
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -396,10 +396,10 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM FinancialYear WHERE FinancialYearId = @FinancialYearId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_FinancialYear WHERE FinancialYearId = @FinancialYearId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE FinancialYear
-            SET FinancialYear = @FinancialYear,
+            UPDATE SMS_FinancialYear
+            SET SMS_FinancialYear = @SMS_FinancialYear,
                 StartDate = @StartDate,
                 EndDate = @EndDate,
                 IsCurrent = @IsCurrent,
@@ -408,10 +408,10 @@ BEGIN
             WHERE FinancialYearId = @FinancialYearId;
         END
 
-        SET @NewValues = (SELECT * FROM FinancialYear WHERE FinancialYearId = @FinancialYearId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @NewValues = (SELECT * FROM SMS_FinancialYear WHERE FinancialYearId = @FinancialYearId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('FinancialYear', @FinancialYearId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_FinancialYear', @FinancialYearId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
 
@@ -440,7 +440,7 @@ BEGIN
     BEGIN TRY
         DECLARE @IsCurrent BIT;
         SELECT @IsCurrent = IsCurrent
-        FROM FinancialYear
+        FROM SMS_FinancialYear
         WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0;
 
         IF @IsCurrent IS NULL
@@ -459,8 +459,8 @@ BEGIN
             RETURN;
         END
 
-        -- Check active dependencies in ClassSchedules
-        IF EXISTS (SELECT 1 FROM ClassSchedules WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
+        -- Check active dependencies in SMS_ClassSchedules
+        IF EXISTS (SELECT 1 FROM SMS_ClassSchedules WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete Financial Year as it is linked to active Class Schedules.';
@@ -468,8 +468,8 @@ BEGIN
             RETURN;
         END
 
-        -- Check active dependencies in StudentInfo
-        IF EXISTS (SELECT 1 FROM StudentInfo WHERE AdmissionFinancialYearId = @FinancialYearId AND IsDeleted = 0)
+        -- Check active dependencies in SMS_StudentInfo
+        IF EXISTS (SELECT 1 FROM SMS_StudentInfo WHERE AdmissionFinancialYearId = @FinancialYearId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete Financial Year as it is linked to student admissions.';
@@ -477,8 +477,8 @@ BEGIN
             RETURN;
         END
 
-        -- Check active dependencies in StudentMappings
-        IF EXISTS (SELECT 1 FROM StudentMappings WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
+        -- Check active dependencies in SMS_StudentMappings
+        IF EXISTS (SELECT 1 FROM SMS_StudentMappings WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete Financial Year as it is linked to student class mappings.';
@@ -489,17 +489,17 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @OldValues NVARCHAR(MAX);
-        SET @OldValues = (SELECT * FROM FinancialYear WHERE FinancialYearId = @FinancialYearId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_FinancialYear WHERE FinancialYearId = @FinancialYearId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE FinancialYear
+        UPDATE SMS_FinancialYear
         SET IsDeleted = 1,
             IsCurrent = 0,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE FinancialYearId = @FinancialYearId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('FinancialYear', @FinancialYearId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_FinancialYear', @FinancialYearId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -527,7 +527,7 @@ BEGIN
         UpdatedDate,
         UpdatedBy,
         IsDeleted
-    FROM DivisionMaster
+    FROM SMS_DivisionMaster
     WHERE IsDeleted = 0
     ORDER BY DivisionName ASC;
 END;
@@ -547,7 +547,7 @@ BEGIN
         UpdatedDate,
         UpdatedBy,
         IsDeleted
-    FROM DivisionMaster
+    FROM SMS_DivisionMaster
     WHERE DivisionId = @DivisionId AND IsDeleted = 0;
 END;
 GO
@@ -567,7 +567,7 @@ BEGIN
     DECLARE @NewValues NVARCHAR(MAX) = NULL;
 
     BEGIN TRY
-        IF EXISTS (SELECT 1 FROM DivisionMaster WHERE DivisionName = @DivisionName AND DivisionId <> ISNULL(@DivisionId, 0) AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_DivisionMaster WHERE DivisionName = @DivisionName AND DivisionId <> ISNULL(@DivisionId, 0) AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Division name already exists.';
@@ -581,14 +581,14 @@ BEGIN
         BEGIN
             SET @OperationType = 'INSERT';
 
-            INSERT INTO DivisionMaster (DivisionName, CreatedBy)
+            INSERT INTO SMS_DivisionMaster (DivisionName, CreatedBy)
             VALUES (@DivisionName, @PerformedBy);
 
             SET @DivisionId = SCOPE_IDENTITY();
         END
         ELSE
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM DivisionMaster WHERE DivisionId = @DivisionId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_DivisionMaster WHERE DivisionId = @DivisionId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -597,19 +597,19 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM DivisionMaster WHERE DivisionId = @DivisionId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_DivisionMaster WHERE DivisionId = @DivisionId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE DivisionMaster
+            UPDATE SMS_DivisionMaster
             SET DivisionName = @DivisionName,
                 UpdatedDate = SYSUTCDATETIME(),
                 UpdatedBy = @PerformedBy
             WHERE DivisionId = @DivisionId;
         END
 
-        SET @NewValues = (SELECT * FROM DivisionMaster WHERE DivisionId = @DivisionId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @NewValues = (SELECT * FROM SMS_DivisionMaster WHERE DivisionId = @DivisionId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('DivisionMaster', @DivisionId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_DivisionMaster', @DivisionId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
 
@@ -636,7 +636,7 @@ BEGIN
     DECLARE @Message VARCHAR(255) = 'Success';
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM DivisionMaster WHERE DivisionId = @DivisionId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_DivisionMaster WHERE DivisionId = @DivisionId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Division not found.';
@@ -644,7 +644,7 @@ BEGIN
             RETURN;
         END
 
-        IF EXISTS (SELECT 1 FROM ClassSchedules WHERE DivisionId = @DivisionId AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_ClassSchedules WHERE DivisionId = @DivisionId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete division as it is linked to active Class Schedules.';
@@ -655,16 +655,16 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @OldValues NVARCHAR(MAX);
-        SET @OldValues = (SELECT * FROM DivisionMaster WHERE DivisionId = @DivisionId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_DivisionMaster WHERE DivisionId = @DivisionId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE DivisionMaster
+        UPDATE SMS_DivisionMaster
         SET IsDeleted = 1,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE DivisionId = @DivisionId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('DivisionMaster', @DivisionId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_DivisionMaster', @DivisionId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -692,7 +692,7 @@ BEGIN
         UpdatedDate,
         UpdatedBy,
         IsDeleted
-    FROM ClassMaster
+    FROM SMS_ClassMaster
     WHERE IsDeleted = 0
     ORDER BY ClassId ASC;
 END;
@@ -712,7 +712,7 @@ BEGIN
         UpdatedDate,
         UpdatedBy,
         IsDeleted
-    FROM ClassMaster
+    FROM SMS_ClassMaster
     WHERE ClassId = @ClassId AND IsDeleted = 0;
 END;
 GO
@@ -733,7 +733,7 @@ BEGIN
     DECLARE @NewValues NVARCHAR(MAX) = NULL;
 
     BEGIN TRY
-        IF EXISTS (SELECT 1 FROM ClassMaster WHERE ClassName = @ClassName AND ClassId <> ISNULL(@ClassId, 0) AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_ClassMaster WHERE ClassName = @ClassName AND ClassId <> ISNULL(@ClassId, 0) AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Class name already exists.';
@@ -747,14 +747,14 @@ BEGIN
         BEGIN
             SET @OperationType = 'INSERT';
 
-            INSERT INTO ClassMaster (ClassName, IsActive, CreatedBy)
+            INSERT INTO SMS_ClassMaster (ClassName, IsActive, CreatedBy)
             VALUES (@ClassName, @IsActive, @PerformedBy);
 
             SET @ClassId = SCOPE_IDENTITY();
         END
         ELSE
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -763,9 +763,9 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM ClassMaster WHERE ClassId = @ClassId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_ClassMaster WHERE ClassId = @ClassId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE ClassMaster
+            UPDATE SMS_ClassMaster
             SET ClassName = @ClassName,
                 IsActive = @IsActive,
                 UpdatedDate = SYSUTCDATETIME(),
@@ -773,10 +773,10 @@ BEGIN
             WHERE ClassId = @ClassId;
         END
 
-        SET @NewValues = (SELECT * FROM ClassMaster WHERE ClassId = @ClassId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @NewValues = (SELECT * FROM SMS_ClassMaster WHERE ClassId = @ClassId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('ClassMaster', @ClassId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_ClassMaster', @ClassId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
 
@@ -803,7 +803,7 @@ BEGIN
     DECLARE @Message VARCHAR(255) = 'Success';
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Class not found.';
@@ -811,7 +811,7 @@ BEGIN
             RETURN;
         END
 
-        IF EXISTS (SELECT 1 FROM ClassSchedules WHERE ClassId = @ClassId AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_ClassSchedules WHERE ClassId = @ClassId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete class as it is linked to active Class Schedules.';
@@ -822,16 +822,16 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @OldValues NVARCHAR(MAX);
-        SET @OldValues = (SELECT * FROM ClassMaster WHERE ClassId = @ClassId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_ClassMaster WHERE ClassId = @ClassId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE ClassMaster
+        UPDATE SMS_ClassMaster
         SET IsDeleted = 1,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE ClassId = @ClassId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('ClassMaster', @ClassId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_ClassMaster', @ClassId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -857,7 +857,7 @@ BEGIN
         DivisionId,
         DivisionName,
         FinancialYearId,
-        FinancialYear,
+        SMS_FinancialYear,
         IsCurrentFinancialYear,
         MaxCapacity,
         StaffId,
@@ -868,7 +868,7 @@ BEGIN
         UpdatedDate,
         UpdatedBy
     FROM vw_ActiveClassSchedules
-    ORDER BY FinancialYear DESC, ClassId ASC, DivisionName ASC;
+    ORDER BY SMS_FinancialYear DESC, ClassId ASC, DivisionName ASC;
 END;
 GO
 
@@ -884,7 +884,7 @@ BEGIN
         DivisionId,
         DivisionName,
         FinancialYearId,
-        FinancialYear,
+        SMS_FinancialYear,
         IsCurrentFinancialYear,
         MaxCapacity,
         StaffId,
@@ -926,7 +926,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0 AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM SMS_ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0 AND IsActive = 1)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Class is invalid or inactive.';
@@ -934,7 +934,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM DivisionMaster WHERE DivisionId = @DivisionId AND IsDeleted = 0 AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM SMS_DivisionMaster WHERE DivisionId = @DivisionId AND IsDeleted = 0 AND IsActive = 1)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Division is invalid or inactive.';
@@ -942,7 +942,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM SMS_FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Financial Year is invalid or inactive.';
@@ -950,7 +950,7 @@ BEGIN
             RETURN;
         END
 
-        IF @StaffId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM StaffDetail WHERE StaffID = @StaffId AND IsDeleted = 0 AND IsActive = 1)
+        IF @StaffId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM SMS_StaffDetail WHERE StaffID = @StaffId AND IsDeleted = 0 AND IsActive = 1)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Staff is invalid or inactive.';
@@ -959,7 +959,7 @@ BEGIN
         END
 
         IF EXISTS (
-            SELECT 1 FROM ClassSchedules 
+            SELECT 1 FROM SMS_ClassSchedules 
             WHERE FinancialYearId = @FinancialYearId 
               AND ClassId = @ClassId 
               AND DivisionId = @DivisionId 
@@ -979,14 +979,14 @@ BEGIN
         BEGIN
             SET @OperationType = 'INSERT';
 
-            INSERT INTO ClassSchedules (ClassId, DivisionId, FinancialYearId, MaxCapacity, StaffId, CreatedBy)
+            INSERT INTO SMS_ClassSchedules (ClassId, DivisionId, FinancialYearId, MaxCapacity, StaffId, CreatedBy)
             VALUES (@ClassId, @DivisionId, @FinancialYearId, @MaxCapacity, @StaffId, @PerformedBy);
 
             SET @ClassScheduleId = SCOPE_IDENTITY();
         END
         ELSE
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM ClassSchedules WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_ClassSchedules WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -995,9 +995,9 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM ClassSchedules WHERE ClassScheduleId = @ClassScheduleId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_ClassSchedules WHERE ClassScheduleId = @ClassScheduleId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE ClassSchedules
+            UPDATE SMS_ClassSchedules
             SET ClassId = @ClassId,
                 DivisionId = @DivisionId,
                 FinancialYearId = @FinancialYearId,
@@ -1008,10 +1008,10 @@ BEGIN
             WHERE ClassScheduleId = @ClassScheduleId;
         END
 
-        SET @NewValues = (SELECT * FROM ClassSchedules WHERE ClassScheduleId = @ClassScheduleId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @NewValues = (SELECT * FROM SMS_ClassSchedules WHERE ClassScheduleId = @ClassScheduleId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('ClassSchedules', @ClassScheduleId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_ClassSchedules', @ClassScheduleId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
 
@@ -1038,7 +1038,7 @@ BEGIN
     DECLARE @Message VARCHAR(255) = 'Success';
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM ClassSchedules WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_ClassSchedules WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Class Schedule not found.';
@@ -1046,7 +1046,7 @@ BEGIN
             RETURN;
         END
 
-        IF EXISTS (SELECT 1 FROM StudentMappings WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_StudentMappings WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete Class Schedule as active students are assigned to it.';
@@ -1057,16 +1057,16 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @OldValues NVARCHAR(MAX);
-        SET @OldValues = (SELECT * FROM ClassSchedules WHERE ClassScheduleId = @ClassScheduleId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_ClassSchedules WHERE ClassScheduleId = @ClassScheduleId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE ClassSchedules
+        UPDATE SMS_ClassSchedules
         SET IsDeleted = 1,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE ClassScheduleId = @ClassScheduleId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('ClassSchedules', @ClassScheduleId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_ClassSchedules', @ClassScheduleId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -1249,7 +1249,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM FinancialYear WHERE FinancialYearId = @AdmissionFinancialYearId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_FinancialYear WHERE FinancialYearId = @AdmissionFinancialYearId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Admission Financial Year is invalid.';
@@ -1264,7 +1264,7 @@ BEGIN
         IF @ClassScheduleId IS NOT NULL AND @ClassScheduleId > 0
         BEGIN
             SELECT @MappingFinancialYearId = FinancialYearId, @MaxCapacity = MaxCapacity
-            FROM ClassSchedules
+            FROM SMS_ClassSchedules
             WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0 AND IsActive = 1;
 
             IF @MappingFinancialYearId IS NULL
@@ -1284,7 +1284,7 @@ BEGIN
             END
 
             IF EXISTS (
-                SELECT 1 FROM StudentMappings 
+                SELECT 1 FROM SMS_StudentMappings 
                 WHERE ClassScheduleId = @ClassScheduleId 
                   AND RollNo = @RollNo 
                   AND StudentId <> ISNULL(@StudentId, 0)
@@ -1298,7 +1298,7 @@ BEGIN
             END
 
             IF EXISTS (
-                SELECT 1 FROM StudentMappings 
+                SELECT 1 FROM SMS_StudentMappings 
                 WHERE StudentId = ISNULL(@StudentId, 0) 
                   AND FinancialYearId = @MappingFinancialYearId 
                   AND IsDeleted = 0
@@ -1312,14 +1312,14 @@ BEGIN
             END
 
             IF NOT EXISTS (
-                SELECT 1 FROM StudentMappings 
+                SELECT 1 FROM SMS_StudentMappings 
                 WHERE StudentId = ISNULL(@StudentId, 0) 
                   AND ClassScheduleId = @ClassScheduleId 
                   AND IsDeleted = 0
             )
             BEGIN
                 SELECT @CurrentCapacity = COUNT(1) 
-                FROM StudentMappings 
+                FROM SMS_StudentMappings 
                 WHERE ClassScheduleId = @ClassScheduleId AND IsDeleted = 0;
 
                 IF @CurrentCapacity >= @MaxCapacity
@@ -1339,7 +1339,7 @@ BEGIN
             SET @OperationType = 'INSERT';
 
             -- Check for duplicate GR Number
-            IF @GrNo IS NOT NULL AND EXISTS (SELECT 1 FROM StudentInfo WHERE GrNo = @GrNo AND IsDeleted = 0)
+            IF @GrNo IS NOT NULL AND EXISTS (SELECT 1 FROM SMS_StudentInfo WHERE GrNo = @GrNo AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 400;
@@ -1348,7 +1348,7 @@ BEGIN
                 RETURN;
             END
 
-            INSERT INTO StudentInfo (
+            INSERT INTO SMS_StudentInfo (
                 GrNo, AdmissionDate, FirstName, MiddleName, LastName, DateOfBirth, Gender, StudentPhoto,
                 PlaceOfBirth, Nationality, BloodGroup, Category, Religion, AadhaarNumber,
                 AddressLine1, AddressLine2, City, State, Country, PinCode,
@@ -1369,7 +1369,7 @@ BEGIN
         END
         ELSE
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -1378,9 +1378,9 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE StudentInfo
+            UPDATE SMS_StudentInfo
             SET AdmissionDate = @AdmissionDate,
                 GrNo = @GrNo,
                 FirstName = @FirstName,
@@ -1420,10 +1420,10 @@ BEGIN
             WHERE StudentId = @StudentId;
         END
 
-        SET @NewValues = (SELECT * FROM StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @NewValues = (SELECT * FROM SMS_StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('StudentInfo', @StudentId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_StudentInfo', @StudentId, @OperationType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         IF @ClassScheduleId IS NOT NULL AND @ClassScheduleId > 0
         BEGIN
@@ -1433,21 +1433,21 @@ BEGIN
             DECLARE @MapOpType VARCHAR(10) = 'UPDATE';
 
             SELECT @MappingId = StudentMappingId
-            FROM StudentMappings
+            FROM SMS_StudentMappings
             WHERE StudentId = @StudentId AND FinancialYearId = @MappingFinancialYearId AND IsDeleted = 0;
 
             IF @MappingId IS NULL
             BEGIN
                 SET @MapOpType = 'INSERT';
-                INSERT INTO StudentMappings (StudentId, ClassScheduleId, FinancialYearId, RollNo, CreatedBy)
+                INSERT INTO SMS_StudentMappings (StudentId, ClassScheduleId, FinancialYearId, RollNo, CreatedBy)
                 VALUES (@StudentId, @ClassScheduleId, @MappingFinancialYearId, @RollNo, @PerformedBy);
                 SET @MappingId = SCOPE_IDENTITY();
             END
             ELSE
             BEGIN
-                SET @MapOldValues = (SELECT * FROM StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+                SET @MapOldValues = (SELECT * FROM SMS_StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-                UPDATE StudentMappings
+                UPDATE SMS_StudentMappings
                 SET ClassScheduleId = @ClassScheduleId,
                     RollNo = @RollNo,
                     UpdatedDate = SYSUTCDATETIME(),
@@ -1455,10 +1455,10 @@ BEGIN
                 WHERE StudentMappingId = @MappingId;
             END
 
-            SET @MapNewValues = (SELECT * FROM StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @MapNewValues = (SELECT * FROM SMS_StudentMappings WHERE StudentMappingId = @MappingId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-            VALUES ('StudentMappings', @MappingId, @MapOpType, @MapOldValues, @MapNewValues, @PerformedBy, @IPAddress, @PerformedBy);
+            INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+            VALUES ('SMS_StudentMappings', @MappingId, @MapOpType, @MapOldValues, @MapNewValues, @PerformedBy, @IPAddress, @PerformedBy);
         END
 
         COMMIT TRANSACTION;
@@ -1489,7 +1489,7 @@ BEGIN
     DECLARE @Message VARCHAR(255) = 'Success';
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Student not found.';
@@ -1498,7 +1498,7 @@ BEGIN
         END
 
         -- Check active mappings dependency
-        IF EXISTS (SELECT 1 FROM StudentMappings WHERE StudentId = @StudentId AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_StudentMappings WHERE StudentId = @StudentId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete Student as they have active class mappings. Remove class mappings first.';
@@ -1509,17 +1509,17 @@ BEGIN
         BEGIN TRANSACTION;
 
         DECLARE @OldValues NVARCHAR(MAX);
-        SET @OldValues = (SELECT * FROM StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_StudentInfo WHERE StudentId = @StudentId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE StudentInfo
+        UPDATE SMS_StudentInfo
         SET IsDeleted = 1,
             IsActive = 0,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE StudentId = @StudentId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('StudentInfo', @StudentId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_StudentInfo', @StudentId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -1546,7 +1546,7 @@ BEGIN
     IF @FinancialYearId IS NULL OR @FinancialYearId = 0
     BEGIN
         SELECT @FinancialYearId = FinancialYearId 
-        FROM FinancialYear 
+        FROM SMS_FinancialYear 
         WHERE IsCurrent = 1 AND IsDeleted = 0;
     END
 
@@ -1558,13 +1558,13 @@ BEGIN
         SELECT 
             sm.StudentId,
             (fm.Fee - ISNULL(paid.TotalPaid, 0)) AS Remaining
-        FROM StudentMappings sm
-        INNER JOIN ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0 AND cs.IsActive = 1
-        INNER JOIN FeeDetail fd ON cs.ClassId = fd.ClassID AND fd.FinancialYearID = sm.FinancialYearId AND fd.IsDeleted = 0 AND fd.IsActive = 1
-        INNER JOIN FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
+        FROM SMS_StudentMappings sm
+        INNER JOIN SMS_ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0 AND cs.IsActive = 1
+        INNER JOIN SMS_FeeDetail fd ON cs.ClassId = fd.ClassID AND fd.FinancialYearID = sm.FinancialYearId AND fd.IsDeleted = 0 AND fd.IsActive = 1
+        INNER JOIN SMS_FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
         LEFT JOIN (
             SELECT StudentID, FinancialYearID, FeeID, SemesterID, SUM(FeePaid) AS TotalPaid
-            FROM PaymentDetail
+            FROM SMS_PaymentDetail
             WHERE IsDeleted = 0
             GROUP BY StudentID, FinancialYearID, FeeID, SemesterID
         ) paid ON sm.StudentId = paid.StudentID 
@@ -1581,12 +1581,12 @@ BEGIN
 
     -- 1. Main KPI summaries (admitted students, active schedules, capacity, staff count, collection figures)
     SELECT 
-        (SELECT COUNT(DISTINCT StudentId) FROM StudentMappings WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS TotalMappedStudents,
-        (SELECT COUNT(1) FROM ClassSchedules WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS TotalActiveClasses,
-        (SELECT ISNULL(SUM(MaxCapacity), 0) FROM ClassSchedules WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS TotalCapacity,
-        (SELECT COUNT(1) FROM StudentInfo WHERE IsDeleted = 0 AND IsActive = 1) AS TotalAdmittedStudents,
-        (SELECT COUNT(1) FROM StaffDetail WHERE IsDeleted = 0 AND IsActive = 1) AS TotalStaff,
-        (SELECT ISNULL(SUM(FeePaid), 0) FROM PaymentDetail WHERE FinancialYearID = @FinancialYearId AND IsDeleted = 0) AS TotalFeesCollected,
+        (SELECT COUNT(DISTINCT StudentId) FROM SMS_StudentMappings WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS TotalMappedStudents,
+        (SELECT COUNT(1) FROM SMS_ClassSchedules WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS TotalActiveClasses,
+        (SELECT ISNULL(SUM(MaxCapacity), 0) FROM SMS_ClassSchedules WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0 AND IsActive = 1) AS TotalCapacity,
+        (SELECT COUNT(1) FROM SMS_StudentInfo WHERE IsDeleted = 0 AND IsActive = 1) AS TotalAdmittedStudents,
+        (SELECT COUNT(1) FROM SMS_StaffDetail WHERE IsDeleted = 0 AND IsActive = 1) AS TotalStaff,
+        (SELECT ISNULL(SUM(FeePaid), 0) FROM SMS_PaymentDetail WHERE FinancialYearID = @FinancialYearId AND IsDeleted = 0) AS TotalFeesCollected,
         ISNULL(@TotalPendingStudents, 0) AS TotalPendingFeesStudents,
         ISNULL(@TotalPendingAmount, 0) AS TotalPendingFeesAmount;
 
@@ -1594,8 +1594,8 @@ BEGIN
     SELECT 
         s.Gender, 
         COUNT(1) AS StudentCount
-    FROM StudentMappings sm
-    INNER JOIN StudentInfo s ON sm.StudentId = s.StudentId AND s.IsDeleted = 0 AND s.IsActive = 1
+    FROM SMS_StudentMappings sm
+    INNER JOIN SMS_StudentInfo s ON sm.StudentId = s.StudentId AND s.IsDeleted = 0 AND s.IsActive = 1
     WHERE sm.FinancialYearId = @FinancialYearId AND sm.IsDeleted = 0 AND sm.IsActive = 1
     GROUP BY s.Gender;
 
@@ -1605,7 +1605,7 @@ BEGIN
         COUNT(sm.StudentId) AS StudentCount,
         cs.MaxCapacity
     FROM vw_ActiveClassSchedules cs
-    LEFT JOIN StudentMappings sm ON cs.ClassScheduleId = sm.ClassScheduleId AND sm.IsDeleted = 0 AND sm.IsActive = 1
+    LEFT JOIN SMS_StudentMappings sm ON cs.ClassScheduleId = sm.ClassScheduleId AND sm.IsDeleted = 0 AND sm.IsActive = 1
     WHERE cs.FinancialYearId = @FinancialYearId
     GROUP BY cs.ClassScheduleId, cs.ClassName, cs.MaxCapacity
     ORDER BY cs.ClassName;
@@ -1615,7 +1615,7 @@ BEGIN
         cs.DivisionName,
         COUNT(sm.StudentId) AS StudentCount
     FROM vw_ActiveClassSchedules cs
-    LEFT JOIN StudentMappings sm ON cs.ClassScheduleId = sm.ClassScheduleId AND sm.IsDeleted = 0 AND sm.IsActive = 1
+    LEFT JOIN SMS_StudentMappings sm ON cs.ClassScheduleId = sm.ClassScheduleId AND sm.IsDeleted = 0 AND sm.IsActive = 1
     WHERE cs.FinancialYearId = @FinancialYearId
     GROUP BY cs.DivisionName
     ORDER BY cs.DivisionName;
@@ -1624,8 +1624,8 @@ BEGIN
     SELECT 
         st.StaffType,
         COUNT(sd.StaffID) AS StaffCount
-    FROM StaffTypeMaster st
-    LEFT JOIN StaffDetail sd ON st.StaffTypeID = sd.StaffType AND sd.IsDeleted = 0 AND sd.IsActive = 1
+    FROM SMS_StaffTypeMaster st
+    LEFT JOIN SMS_StaffDetail sd ON st.StaffTypeID = sd.StaffType AND sd.IsDeleted = 0 AND sd.IsActive = 1
     WHERE st.IsDeleted = 0 AND st.IsActive = 1
     GROUP BY st.StaffTypeID, st.StaffType;
 END;
@@ -1670,8 +1670,8 @@ SELECT
     s.IsActive,
     s.CreatedDate,
     s.CreatedBy
-FROM StaffDetail s
-INNER JOIN StaffTypeMaster st ON s.StaffType = st.StaffTypeID AND st.IsDeleted = 0
+FROM SMS_StaffDetail s
+INNER JOIN SMS_StaffTypeMaster st ON s.StaffType = st.StaffTypeID AND st.IsDeleted = 0
 WHERE s.IsDeleted = 0;
 GO
 
@@ -1687,18 +1687,18 @@ SELECT
     fd.ClassID,
     c.ClassName,
     fd.FinancialYearID,
-    fy.FinancialYear,
+    fy.SMS_FinancialYear,
     fy.IsCurrent AS IsCurrentFinancialYear,
     fd.SemesterID,
     sem.SemesterName,
     fd.IsActive,
     fd.CreatedDate,
     fd.CreatedBy
-FROM FeeDetail fd
-INNER JOIN FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
-INNER JOIN ClassMaster c ON fd.ClassID = c.ClassId AND c.IsDeleted = 0
-INNER JOIN FinancialYear fy ON fd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
-INNER JOIN SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
+FROM SMS_FeeDetail fd
+INNER JOIN SMS_FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
+INNER JOIN SMS_ClassMaster c ON fd.ClassID = c.ClassId AND c.IsDeleted = 0
+INNER JOIN SMS_FinancialYear fy ON fd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
+INNER JOIN SMS_SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
 WHERE fd.IsDeleted = 0;
 GO
 
@@ -1713,7 +1713,7 @@ SELECT
     (s.FirstName + ' ' + ISNULL(s.MiddleName + ' ', '') + s.LastName) AS StudentFullName,
     s.GrNo,
     pd.FinancialYearID,
-    fy.FinancialYear,
+    fy.SMS_FinancialYear,
     pd.FeeID,
     fm.Fee AS TotalFeeAmount,
     pd.SemesterID,
@@ -1729,17 +1729,17 @@ SELECT
     pd.CreatedBy,
     (fm.Fee - ISNULL((
         SELECT SUM(pd2.FeePaid)
-        FROM PaymentDetail pd2
+        FROM SMS_PaymentDetail pd2
         WHERE pd2.StudentID = pd.StudentID
           AND pd2.FinancialYearID = pd.FinancialYearID
           AND pd2.SemesterID = pd.SemesterID
           AND pd2.IsDeleted = 0
     ), 0)) AS FeeRemaining
-FROM PaymentDetail pd
-INNER JOIN StudentInfo s ON pd.StudentID = s.StudentId AND s.IsDeleted = 0
-INNER JOIN FinancialYear fy ON pd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
-INNER JOIN FeeMaster fm ON pd.FeeID = fm.FeeID AND fm.IsDeleted = 0
-INNER JOIN SemesterMaster sem ON pd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
+FROM SMS_PaymentDetail pd
+INNER JOIN SMS_StudentInfo s ON pd.StudentID = s.StudentId AND s.IsDeleted = 0
+INNER JOIN SMS_FinancialYear fy ON pd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
+INNER JOIN SMS_FeeMaster fm ON pd.FeeID = fm.FeeID AND fm.IsDeleted = 0
+INNER JOIN SMS_SemesterMaster sem ON pd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
 WHERE pd.IsDeleted = 0;
 GO
 
@@ -1756,7 +1756,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT ClassId, ClassName 
-    FROM ClassMaster 
+    FROM SMS_ClassMaster 
     WHERE IsDeleted = 0 AND IsActive = 1
     ORDER BY ClassName;
 END;
@@ -1770,7 +1770,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT SemesterID, SemesterName, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted 
-    FROM SemesterMaster 
+    FROM SMS_SemesterMaster 
     WHERE IsDeleted = 0 AND IsActive = 1
     ORDER BY SemesterName;
 END;
@@ -1784,7 +1784,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT StaffTypeID, StaffType, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted 
-    FROM StaffTypeMaster 
+    FROM SMS_StaffTypeMaster 
     WHERE IsDeleted = 0 AND IsActive = 1
     ORDER BY StaffType;
 END;
@@ -1798,7 +1798,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT FeeID, Fee AS FeeAmount
-    FROM FeeMaster 
+    FROM SMS_FeeMaster 
     WHERE IsDeleted = 0 AND IsActive = 1
     ORDER BY Fee;
 END;
@@ -1837,16 +1837,16 @@ BEGIN
         fd.ClassID,
         c.ClassName,
         fd.FinancialYearID,
-        fy.FinancialYear,
+        fy.SMS_FinancialYear,
         fy.IsCurrent AS IsCurrentFinancialYear,
         fd.SemesterID,
         sem.SemesterName,
         fd.IsActive
-    FROM FeeDetail fd
-    INNER JOIN FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
-    INNER JOIN ClassMaster c ON fd.ClassID = c.ClassId AND c.IsDeleted = 0
-    INNER JOIN FinancialYear fy ON fd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
-    INNER JOIN SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
+    FROM SMS_FeeDetail fd
+    INNER JOIN SMS_FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
+    INNER JOIN SMS_ClassMaster c ON fd.ClassID = c.ClassId AND c.IsDeleted = 0
+    INNER JOIN SMS_FinancialYear fy ON fd.FinancialYearID = fy.FinancialYearId AND fy.IsDeleted = 0
+    INNER JOIN SMS_SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
     WHERE fd.ClassID = @ClassId 
       AND fd.FinancialYearID = @FinancialYearId
       AND fd.IsDeleted = 0 AND fd.IsActive = 1
@@ -1925,7 +1925,7 @@ BEGIN
         END
 
         -- Validate Aadhaar uniqueness if provided
-        IF ISNULL(@AadhaarNo, '') <> '' AND EXISTS (SELECT 1 FROM StaffDetail WHERE AadhaarNo = @AadhaarNo AND StaffID <> @StaffId AND IsDeleted = 0)
+        IF ISNULL(@AadhaarNo, '') <> '' AND EXISTS (SELECT 1 FROM SMS_StaffDetail WHERE AadhaarNo = @AadhaarNo AND StaffID <> @StaffId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'A staff member with this Aadhaar Number already exists.';
@@ -1934,7 +1934,7 @@ BEGIN
         END
 
         -- Check if Staff Type exists
-        IF NOT EXISTS (SELECT 1 FROM StaffTypeMaster WHERE StaffTypeID = @StaffType AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_StaffTypeMaster WHERE StaffTypeID = @StaffType AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Invalid Staff Type selected.';
@@ -1948,7 +1948,7 @@ BEGIN
         BEGIN
             -- INSERT
             SET @OpType = 'INSERT';
-            INSERT INTO StaffDetail (
+            INSERT INTO SMS_StaffDetail (
                 StaffFirstName, StaffMiddleName, StaffLastName, StaffType, Mobileno,
                 EmergencyContact, AddressLine1, AddressLine2, AadhaarNo, BankName, IFSCCode, AccountNo,
                 PanNo, StaffPic, DOB, IsActive, CreatedBy
@@ -1965,7 +1965,7 @@ BEGIN
         BEGIN
             -- UPDATE
             SET @OpType = 'UPDATE';
-            IF NOT EXISTS (SELECT 1 FROM StaffDetail WHERE StaffID = @StaffId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_StaffDetail WHERE StaffID = @StaffId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -1975,9 +1975,9 @@ BEGIN
             END
 
             -- Get Old values for Audit Log
-            SET @OldValues = (SELECT * FROM StaffDetail WHERE StaffID = @StaffId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_StaffDetail WHERE StaffID = @StaffId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE StaffDetail
+            UPDATE SMS_StaffDetail
             SET StaffFirstName = @StaffFirstName,
                 StaffMiddleName = @StaffMiddleName,
                 StaffLastName = @StaffLastName,
@@ -2000,9 +2000,9 @@ BEGIN
         END
 
         -- Capture new values and write Audit Log
-        SET @NewValues = (SELECT * FROM StaffDetail WHERE StaffID = @StaffId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('StaffDetail', @StaffId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        SET @NewValues = (SELECT * FROM SMS_StaffDetail WHERE StaffID = @StaffId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_StaffDetail', @StaffId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message, @StaffId AS StaffId;
@@ -2032,7 +2032,7 @@ BEGIN
     DECLARE @OldValues NVARCHAR(MAX);
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM StaffDetail WHERE StaffID = @StaffId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_StaffDetail WHERE StaffID = @StaffId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Staff member not found.';
@@ -2041,7 +2041,7 @@ BEGIN
         END
 
         -- Prevent deletion if assigned to class schedules
-        IF EXISTS (SELECT 1 FROM ClassSchedules WHERE StaffId = @StaffId AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_ClassSchedules WHERE StaffId = @StaffId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Cannot delete staff member as they are actively assigned to a class schedule.';
@@ -2051,17 +2051,17 @@ BEGIN
 
         BEGIN TRANSACTION;
 
-        SET @OldValues = (SELECT * FROM StaffDetail WHERE StaffID = @StaffId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_StaffDetail WHERE StaffID = @StaffId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE StaffDetail
+        UPDATE SMS_StaffDetail
         SET IsDeleted = 1,
             IsActive = 0,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE StaffID = @StaffId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('StaffDetail', @StaffId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_StaffDetail', @StaffId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -2081,7 +2081,7 @@ GO
 -- 4. CRUD PROCEDURES - FEE MASTER
 -- ============================================================================
 
--- GetAll FeeMaster
+-- GetAll SMS_FeeMaster
 IF OBJECT_ID('usp_FeeMaster_GetAll', 'P') IS NOT NULL DROP PROCEDURE usp_FeeMaster_GetAll;
 GO
 CREATE PROCEDURE usp_FeeMaster_GetAll
@@ -2089,13 +2089,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT FeeID, Fee, CreatedDate, CreatedBy, UpdatedDate, UpdatedBy, IsActive, IsDeleted 
-    FROM FeeMaster 
+    FROM SMS_FeeMaster 
     WHERE IsDeleted = 0 
     ORDER BY Fee;
 END;
 GO
 
--- Save (Upsert) FeeMaster
+-- Save (Upsert) SMS_FeeMaster
 IF OBJECT_ID('usp_FeeMaster_Save', 'P') IS NOT NULL DROP PROCEDURE usp_FeeMaster_Save;
 GO
 CREATE PROCEDURE usp_FeeMaster_Save
@@ -2123,7 +2123,7 @@ BEGIN
         END
 
         -- Check unique fee value
-        IF EXISTS (SELECT 1 FROM FeeMaster WHERE Fee = @Fee AND FeeID <> @FeeId AND IsDeleted = 0)
+        IF EXISTS (SELECT 1 FROM SMS_FeeMaster WHERE Fee = @Fee AND FeeID <> @FeeId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'This fee amount already exists.';
@@ -2136,14 +2136,14 @@ BEGIN
         IF @FeeId = 0 OR @FeeId IS NULL
         BEGIN
             SET @OpType = 'INSERT';
-            INSERT INTO FeeMaster (Fee, IsActive, CreatedBy)
+            INSERT INTO SMS_FeeMaster (Fee, IsActive, CreatedBy)
             VALUES (@Fee, @IsActive, @PerformedBy);
             SET @FeeId = SCOPE_IDENTITY();
         END
         ELSE
         BEGIN
             SET @OpType = 'UPDATE';
-            IF NOT EXISTS (SELECT 1 FROM FeeMaster WHERE FeeID = @FeeId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_FeeMaster WHERE FeeID = @FeeId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -2152,9 +2152,9 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM FeeMaster WHERE FeeID = @FeeId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_FeeMaster WHERE FeeID = @FeeId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE FeeMaster
+            UPDATE SMS_FeeMaster
             SET Fee = @Fee,
                 IsActive = @IsActive,
                 UpdatedDate = SYSUTCDATETIME(),
@@ -2162,9 +2162,9 @@ BEGIN
             WHERE FeeID = @FeeId;
         END
 
-        SET @NewValues = (SELECT * FROM FeeMaster WHERE FeeID = @FeeId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('FeeMaster', @FeeId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        SET @NewValues = (SELECT * FROM SMS_FeeMaster WHERE FeeID = @FeeId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_FeeMaster', @FeeId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message, @FeeId AS FeeId;
@@ -2184,7 +2184,7 @@ GO
 -- 5. CRUD PROCEDURES - FEE DETAIL (CLASS FEE SCHEDULING)
 -- ============================================================================
 
--- GetAll mapped FeeDetail
+-- GetAll mapped SMS_FeeDetail
 IF OBJECT_ID('usp_FeeDetail_GetAll', 'P') IS NOT NULL DROP PROCEDURE usp_FeeDetail_GetAll;
 GO
 CREATE PROCEDURE usp_FeeDetail_GetAll
@@ -2199,7 +2199,7 @@ BEGIN
 END;
 GO
 
--- GetById FeeDetail
+-- GetById SMS_FeeDetail
 IF OBJECT_ID('usp_FeeDetail_GetById', 'P') IS NOT NULL DROP PROCEDURE usp_FeeDetail_GetById;
 GO
 CREATE PROCEDURE usp_FeeDetail_GetById
@@ -2211,7 +2211,7 @@ BEGIN
 END;
 GO
 
--- Save mapped FeeDetail
+-- Save mapped SMS_FeeDetail
 IF OBJECT_ID('usp_FeeDetail_Save', 'P') IS NOT NULL DROP PROCEDURE usp_FeeDetail_Save;
 GO
 CREATE PROCEDURE usp_FeeDetail_Save
@@ -2234,7 +2234,7 @@ BEGIN
 
     BEGIN TRY
         -- Verify FKs
-        IF NOT EXISTS (SELECT 1 FROM FeeMaster WHERE FeeID = @FeeId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_FeeMaster WHERE FeeID = @FeeId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Fee amount is invalid.';
@@ -2242,7 +2242,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_ClassMaster WHERE ClassId = @ClassId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Class is invalid.';
@@ -2250,7 +2250,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM SemesterMaster WHERE SemesterID = @SemesterId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_SemesterMaster WHERE SemesterID = @SemesterId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Semester is invalid.';
@@ -2258,7 +2258,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Selected Financial Year is invalid.';
@@ -2268,7 +2268,7 @@ BEGIN
 
         -- Prevent duplicate fee mappings for the same Class, Semester, and Financial Year
         IF EXISTS (
-            SELECT 1 FROM FeeDetail 
+            SELECT 1 FROM SMS_FeeDetail 
             WHERE ClassID = @ClassId 
               AND SemesterID = @SemesterId 
               AND FinancialYearID = @FinancialYearId 
@@ -2287,14 +2287,14 @@ BEGIN
         IF @FeeDetailId = 0 OR @FeeDetailId IS NULL
         BEGIN
             SET @OpType = 'INSERT';
-            INSERT INTO FeeDetail (FeeID, ClassID, FinancialYearID, SemesterID, IsActive, CreatedBy)
+            INSERT INTO SMS_FeeDetail (FeeID, ClassID, FinancialYearID, SemesterID, IsActive, CreatedBy)
             VALUES (@FeeId, @ClassId, @FinancialYearId, @SemesterId, @IsActive, @PerformedBy);
             SET @FeeDetailId = SCOPE_IDENTITY();
         END
         ELSE
         BEGIN
             SET @OpType = 'UPDATE';
-            IF NOT EXISTS (SELECT 1 FROM FeeDetail WHERE FeeDetailID = @FeeDetailId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_FeeDetail WHERE FeeDetailID = @FeeDetailId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -2303,9 +2303,9 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM FeeDetail WHERE FeeDetailID = @FeeDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_FeeDetail WHERE FeeDetailID = @FeeDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE FeeDetail
+            UPDATE SMS_FeeDetail
             SET FeeID = @FeeId,
                 ClassID = @ClassId,
                 FinancialYearID = @FinancialYearId,
@@ -2316,9 +2316,9 @@ BEGIN
             WHERE FeeDetailID = @FeeDetailId;
         END
 
-        SET @NewValues = (SELECT * FROM FeeDetail WHERE FeeDetailID = @FeeDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('FeeDetail', @FeeDetailId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        SET @NewValues = (SELECT * FROM SMS_FeeDetail WHERE FeeDetailID = @FeeDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_FeeDetail', @FeeDetailId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message, @FeeDetailId AS FeeDetailId;
@@ -2333,7 +2333,7 @@ BEGIN
 END;
 GO
 
--- Delete FeeDetail mapping
+-- Delete SMS_FeeDetail mapping
 IF OBJECT_ID('usp_FeeDetail_Delete', 'P') IS NOT NULL DROP PROCEDURE usp_FeeDetail_Delete;
 GO
 CREATE PROCEDURE usp_FeeDetail_Delete
@@ -2348,7 +2348,7 @@ BEGIN
     DECLARE @OldValues NVARCHAR(MAX);
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM FeeDetail WHERE FeeDetailID = @FeeDetailId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_FeeDetail WHERE FeeDetailID = @FeeDetailId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Fee mapping record not found.';
@@ -2359,13 +2359,13 @@ BEGIN
         -- Prevent delete if payments exist for this combination
         DECLARE @FeeId INT, @ClassId INT, @SemesterId INT, @FinancialYearId INT;
         SELECT @FeeId = FeeID, @ClassId = ClassID, @SemesterId = SemesterID, @FinancialYearId = FinancialYearID 
-        FROM FeeDetail 
+        FROM SMS_FeeDetail 
         WHERE FeeDetailID = @FeeDetailId;
 
         IF EXISTS (
-            SELECT 1 FROM PaymentDetail pd
-            INNER JOIN StudentMappings sm ON pd.StudentID = sm.StudentId AND sm.IsDeleted = 0
-            INNER JOIN ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0
+            SELECT 1 FROM SMS_PaymentDetail pd
+            INNER JOIN SMS_StudentMappings sm ON pd.StudentID = sm.StudentId AND sm.IsDeleted = 0
+            INNER JOIN SMS_ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0
             WHERE pd.FeeID = @FeeId 
               AND pd.SemesterID = @SemesterId 
               AND pd.FinancialYearID = @FinancialYearId
@@ -2381,17 +2381,17 @@ BEGIN
 
         BEGIN TRANSACTION;
 
-        SET @OldValues = (SELECT * FROM FeeDetail WHERE FeeDetailID = @FeeDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_FeeDetail WHERE FeeDetailID = @FeeDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE FeeDetail
+        UPDATE SMS_FeeDetail
         SET IsDeleted = 1,
             IsActive = 0,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE FeeDetailID = @FeeDetailId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('FeeDetail', @FeeDetailId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_FeeDetail', @FeeDetailId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -2425,7 +2425,7 @@ BEGIN
     IF @FinancialYearId IS NULL OR @FinancialYearId = 0
     BEGIN
         SELECT @FinancialYearId = FinancialYearId 
-        FROM FinancialYear 
+        FROM SMS_FinancialYear 
         WHERE IsCurrent = 1 AND IsDeleted = 0;
     END
 
@@ -2467,7 +2467,7 @@ BEGIN
 
     BEGIN TRY
         -- Validation checks
-        IF NOT EXISTS (SELECT 1 FROM StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_StudentInfo WHERE StudentId = @StudentId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Student not found.';
@@ -2475,7 +2475,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_FinancialYear WHERE FinancialYearId = @FinancialYearId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Financial Year not found.';
@@ -2483,7 +2483,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM FeeMaster WHERE FeeID = @FeeId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_FeeMaster WHERE FeeID = @FeeId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Fee configuration not found.';
@@ -2491,7 +2491,7 @@ BEGIN
             RETURN;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM SemesterMaster WHERE SemesterID = @SemesterId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_SemesterMaster WHERE SemesterID = @SemesterId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 400;
             SET @Message = 'Semester not found.';
@@ -2521,7 +2521,7 @@ BEGIN
         IF @PaymentDetailId = 0 OR @PaymentDetailId IS NULL
         BEGIN
             SET @OpType = 'INSERT';
-            INSERT INTO PaymentDetail (
+            INSERT INTO SMS_PaymentDetail (
                 StudentID, FinancialYearID, FeeID, PaymentMode, TransactionRef,
                 Transactionphoto, IsFullyPaid, SemesterID, FeePaid, TotalInstallment, Remarks, CreatedBy
             )
@@ -2534,7 +2534,7 @@ BEGIN
         ELSE
         BEGIN
             SET @OpType = 'UPDATE';
-            IF NOT EXISTS (SELECT 1 FROM PaymentDetail WHERE PaymentDetailID = @PaymentDetailId AND IsDeleted = 0)
+            IF NOT EXISTS (SELECT 1 FROM SMS_PaymentDetail WHERE PaymentDetailID = @PaymentDetailId AND IsDeleted = 0)
             BEGIN
                 IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
                 SET @StatusCode = 404;
@@ -2543,9 +2543,9 @@ BEGIN
                 RETURN;
             END
 
-            SET @OldValues = (SELECT * FROM PaymentDetail WHERE PaymentDetailID = @PaymentDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+            SET @OldValues = (SELECT * FROM SMS_PaymentDetail WHERE PaymentDetailID = @PaymentDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-            UPDATE PaymentDetail
+            UPDATE SMS_PaymentDetail
             SET StudentID = @StudentId,
                 FinancialYearID = @FinancialYearId,
                 FeeID = @FeeId,
@@ -2562,9 +2562,9 @@ BEGIN
             WHERE PaymentDetailID = @PaymentDetailId;
         END
 
-        SET @NewValues = (SELECT * FROM PaymentDetail WHERE PaymentDetailID = @PaymentDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('PaymentDetail', @PaymentDetailId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
+        SET @NewValues = (SELECT * FROM SMS_PaymentDetail WHERE PaymentDetailID = @PaymentDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_PaymentDetail', @PaymentDetailId, @OpType, @OldValues, @NewValues, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message, @PaymentDetailId AS PaymentDetailId;
@@ -2605,7 +2605,7 @@ BEGIN
     DECLARE @OldValues NVARCHAR(MAX);
 
     BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM PaymentDetail WHERE PaymentDetailID = @PaymentDetailId AND IsDeleted = 0)
+        IF NOT EXISTS (SELECT 1 FROM SMS_PaymentDetail WHERE PaymentDetailID = @PaymentDetailId AND IsDeleted = 0)
         BEGIN
             SET @StatusCode = 404;
             SET @Message = 'Payment record not found.';
@@ -2615,16 +2615,16 @@ BEGIN
 
         BEGIN TRANSACTION;
 
-        SET @OldValues = (SELECT * FROM PaymentDetail WHERE PaymentDetailID = @PaymentDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
+        SET @OldValues = (SELECT * FROM SMS_PaymentDetail WHERE PaymentDetailID = @PaymentDetailId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-        UPDATE PaymentDetail
+        UPDATE SMS_PaymentDetail
         SET IsDeleted = 1,
             UpdatedDate = SYSUTCDATETIME(),
             UpdatedBy = @PerformedBy
         WHERE PaymentDetailID = @PaymentDetailId;
 
-        INSERT INTO AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
-        VALUES ('PaymentDetail', @PaymentDetailId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
+        INSERT INTO SMS_AuditLogs (TableName, RecordId, OperationType, OldValuesJson, NewValuesJson, PerformedBy, IPAddress, CreatedBy)
+        VALUES ('SMS_PaymentDetail', @PaymentDetailId, 'DELETE', @OldValues, NULL, @PerformedBy, @IPAddress, @PerformedBy);
 
         COMMIT TRANSACTION;
         SELECT @StatusCode AS StatusCode, @Message AS Message;
@@ -2654,7 +2654,7 @@ BEGIN
     IF @FinancialYearId IS NULL
     BEGIN
         SELECT TOP 1 @FinancialYearId = FinancialYearId 
-        FROM FinancialYear 
+        FROM SMS_FinancialYear 
         WHERE IsCurrent = 1 AND IsDeleted = 0;
     END
 
@@ -2668,26 +2668,26 @@ BEGIN
         sm.RollNo,
         (st.StaffFirstName + ' ' + ISNULL(st.StaffMiddleName + ' ', '') + st.StaffLastName) AS StaffName,
         sm.FinancialYearId,
-        fy.FinancialYear,
+        fy.SMS_FinancialYear,
         fd.FeeID AS FeeId,
         fd.SemesterID AS SemesterId,
         sem.SemesterName,
         fm.Fee AS TotalFeeAmount,
         ISNULL(paid.TotalPaid, 0) AS AmountPaid,
         (fm.Fee - ISNULL(paid.TotalPaid, 0)) AS RemainingBalance
-    FROM StudentMappings sm
-    INNER JOIN StudentInfo s ON sm.StudentId = s.StudentId AND s.IsDeleted = 0
-    INNER JOIN ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0
-    INNER JOIN ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
-    INNER JOIN DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
-    INNER JOIN FinancialYear fy ON sm.FinancialYearId = fy.FinancialYearId AND fy.IsDeleted = 0
-    INNER JOIN FeeDetail fd ON cs.ClassId = fd.ClassID AND fd.FinancialYearID = sm.FinancialYearId AND fd.IsDeleted = 0 AND fd.IsActive = 1
-    INNER JOIN FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
-    INNER JOIN SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
-    LEFT JOIN StaffDetail st ON cs.StaffId = st.StaffID AND st.IsDeleted = 0
+    FROM SMS_StudentMappings sm
+    INNER JOIN SMS_StudentInfo s ON sm.StudentId = s.StudentId AND s.IsDeleted = 0
+    INNER JOIN SMS_ClassSchedules cs ON sm.ClassScheduleId = cs.ClassScheduleId AND cs.IsDeleted = 0
+    INNER JOIN SMS_ClassMaster c ON cs.ClassId = c.ClassId AND c.IsDeleted = 0
+    INNER JOIN SMS_DivisionMaster d ON cs.DivisionId = d.DivisionId AND d.IsDeleted = 0
+    INNER JOIN SMS_FinancialYear fy ON sm.FinancialYearId = fy.FinancialYearId AND fy.IsDeleted = 0
+    INNER JOIN SMS_FeeDetail fd ON cs.ClassId = fd.ClassID AND fd.FinancialYearID = sm.FinancialYearId AND fd.IsDeleted = 0 AND fd.IsActive = 1
+    INNER JOIN SMS_FeeMaster fm ON fd.FeeID = fm.FeeID AND fm.IsDeleted = 0
+    INNER JOIN SMS_SemesterMaster sem ON fd.SemesterID = sem.SemesterID AND sem.IsDeleted = 0
+    LEFT JOIN SMS_StaffDetail st ON cs.StaffId = st.StaffID AND st.IsDeleted = 0
     LEFT JOIN (
         SELECT StudentID, FinancialYearID, FeeID, SemesterID, SUM(FeePaid) AS TotalPaid
-        FROM PaymentDetail
+        FROM SMS_PaymentDetail
         WHERE IsDeleted = 0
         GROUP BY StudentID, FinancialYearID, FeeID, SemesterID
     ) paid ON sm.StudentId = paid.StudentID 
@@ -2702,6 +2702,7 @@ BEGIN
     ORDER BY c.ClassName, s.FirstName, sem.SemesterName;
 END;
 GO
+
 
 
 
